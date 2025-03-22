@@ -1,12 +1,11 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BrowserRouter as Router, Link, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import Login from "../pages/login.tsx";
 
 function Navbar() {
   return (
-    <Router>
-      {/* Header/Navigation */}
+    <>
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -38,9 +37,8 @@ function Navbar() {
 
       <Routes>
         <Route path="/login" element={<Login />} />
-        {/* Add other routes as needed */}
       </Routes>
-    </Router>
+    </>
   );
 }
 
