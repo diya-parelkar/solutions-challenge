@@ -4,12 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import PromptRefinement from "../services/promptRefinement";
-import OutlineGenerator from "../services/outlineGenerator";
-import ContentGenerator from "../services/contentGenerator";
-import ContentRefinement from "../services/contentRefinement";
-import PageRenderer from "@/services/pageRenderer";
 import PageRendererComponent from './../services/pageRendererComponent';
+import ContentFlowService from '../services/contentFlow';
+import CacheService from '../services/cache';
 
 // Type definitions
 interface PageContent {
@@ -38,15 +35,6 @@ interface Content {
   totalPages: number;
 }
 
-// Cache key generators
-const getCacheKeys = (originalPrompt: string, subtopicPage?: number) => {
-  return {
-    refinedPrompt: `refinedPrompt-${originalPrompt}`,
-    outline: `outline-${originalPrompt}`,
-    page: subtopicPage ? `page-${originalPrompt}-${subtopicPage}` : undefined
-  };
-};
-
 // Level display mapping
 const LEVEL_DISPLAY: Record<string, string> = {
   "explain-like-im-5": "Explain Like I'm 5",
@@ -68,7 +56,6 @@ export default function GeneratedWebsite() {
 
   // State management
   const [loading, setLoading] = useState<boolean>(true);
-  const [refinedPrompt, setRefinedPrompt] = useState<string | null>(null);
   const [content, setContent] = useState<Content | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pageContents, setPageContents] = useState<PageContent[]>([]);
@@ -87,187 +74,21 @@ export default function GeneratedWebsite() {
   // Main content generation flow
   const generateContent = async () => {
     try {
-      await refinePrompt();
-      // Content generation will continue in the useEffect that watches for content changes
+      const contentFlow = new ContentFlowService(
+        originalPrompt,
+        level,
+        contentType,
+        setProgress,
+        setContent,
+        setPageContents,
+        setError
+      );
+      
+      await contentFlow.start();
     } catch (err) {
       setError(`Failed to start content generation: ${err instanceof Error ? err.message : String(err)}`);
       setLoading(false);
     }
-  };
-
-  // Generate page content when outline is ready
-  useEffect(() => {
-    if (content) {
-      generateDetailedContent();
-    }
-  }, [content]);
-
-  // Step 1: Refine the original prompt
-  const refinePrompt = async () => {
-    const cacheKeys = getCacheKeys(originalPrompt);
-    setProgress(10);
-    
-    try {
-      const cachedRefined = localStorage.getItem(cacheKeys.refinedPrompt);
-      
-      if (cachedRefined) {
-        console.log(`✅ CACHE: Loaded refined prompt for "${originalPrompt}"`);
-        setRefinedPrompt(cachedRefined);
-        setProgress(20);
-        await generateOutline(cachedRefined);
-      } else {
-        console.log(`🔄 GENERATING: Refining prompt for "${originalPrompt}"...`);
-        const refinedNew = await PromptRefinement.refinePrompt(originalPrompt, level, contentType);
-        console.log(`✅ COMPLETED: Refined prompt for "${originalPrompt}"`);
-        
-        setRefinedPrompt(refinedNew);
-        localStorage.setItem(cacheKeys.refinedPrompt, refinedNew);
-        setProgress(20);
-        await generateOutline(refinedNew);
-      }
-    } catch (err) {
-      setError(`❌ ERROR: Failed to refine prompt: ${err instanceof Error ? err.message : String(err)}`);
-      setLoading(false);
-    }
-  };
-
-  // Step 2: Generate the content outline
-  const generateOutline = async (refined: string) => {
-    const cacheKeys = getCacheKeys(originalPrompt);
-    setLoading(true);
-    
-    try {
-      const cachedOutline = localStorage.getItem(cacheKeys.outline);
-      
-      if (cachedOutline) {
-        console.log(`✅ CACHE: Loaded outline for "${originalPrompt}"`);
-        setContent(JSON.parse(cachedOutline));
-        setProgress(40);
-      } else {
-        console.log(`🔄 GENERATING: Creating outline for "${originalPrompt}"...`);
-        const outlineData = await OutlineGenerator.generateOutline(refined, level, contentType);
-        
-        if (!outlineData || !outlineData.topics) {
-          throw new Error("Outline data is invalid or missing topics.");
-        }
-
-        const newContent: Content = {
-          title: originalPrompt,
-          level: getLevelDisplay(level),
-          contentType: contentType === "concise" ? "Quick Read" : "Detailed Explanation",
-          topics: outlineData.topics,
-          totalPages: outlineData.totalPages ?? 0,
-        };
-
-        console.log(`✅ COMPLETED: Created outline with ${newContent.totalPages} pages`);
-        setContent(newContent);
-        localStorage.setItem(cacheKeys.outline, JSON.stringify(newContent));
-        setProgress(40);
-      }
-    } catch (err) {
-      setError(`❌ ERROR: Failed to generate outline: ${err instanceof Error ? err.message : String(err)}`);
-      setLoading(false);
-    }
-  };
-
-  // Step 3: Generate detailed page content
-  const generateDetailedContent = async () => {
-    if (!content || !refinedPrompt) return;
-
-    let allPages: PageContent[] = [];
-    let completedPages = 0;
-    const totalSubtopics = content.topics.reduce((count, topic) => count + topic.subtopics.length, 0);
-
-    // Process topics and subtopics in order
-    for (const topic of content.topics) {
-      for (const subtopic of topic.subtopics) {
-        const cacheKeys = getCacheKeys(originalPrompt, subtopic.page);
-        
-        if (!cacheKeys.page) continue;
-        const cachedPage = localStorage.getItem(cacheKeys.page);
-
-        if (cachedPage) {
-          console.log(`✅ CACHE: Loaded page ${subtopic.page} - "${subtopic.title}"`);
-          const pageData = JSON.parse(cachedPage);
-          allPages.push(pageData);
-          
-          // Make sure we update the state as we go to show progress
-          setPageContents(prev => {
-            // Avoid duplicates
-            if (prev.some(p => p.page === subtopic.page)) return prev;
-            return [...prev, pageData];
-          });
-        } else {
-          console.log(`🔄 GENERATING: Creating page ${subtopic.page} - "${subtopic.title}"...`);
-          try {
-            // Generate raw content for the page
-            const rawContent = await ContentGenerator.generatePageContent(
-              refinedPrompt,
-              level,
-              contentType,
-              subtopic.title,
-              subtopic.summary,
-              subtopic.page,
-              subtopic.requires
-            );
-
-            console.log(`✅ PROGRESS: Raw content ready for page ${subtopic.page}`);
-
-            // Refine the raw content
-            const refinedContent = await ContentRefinement.refineContent(rawContent);
-            console.log(`✅ PROGRESS: Content refined for page ${subtopic.page}`);
-
-            // Apply styles to the refined content
-            const styledContent = PageRenderer.applyStyles(refinedContent);
-            console.log(`✅ COMPLETED: Page ${subtopic.page} fully generated and styled`);
-
-            const pageData = { 
-              page: subtopic.page, 
-              rawContent, 
-              refinedContent: styledContent 
-            };
-            
-            // Save to cache
-            localStorage.setItem(cacheKeys.page, JSON.stringify(pageData));
-            
-            allPages.push(pageData);
-            
-            // Update the current state with the new page
-            setPageContents(prev => {
-              if (prev.some(p => p.page === subtopic.page)) return prev;
-              return [...prev, pageData];
-            });
-          } catch (err) {
-            console.error(`❌ ERROR: Failed generating page ${subtopic.page}:`, err);
-            
-            // Create error page
-            const pageData = { 
-              page: subtopic.page, 
-              rawContent: `Error generating content for "${subtopic.title}"`, 
-              refinedContent: `<p>Error generating content for "${subtopic.title}". Please try again later.</p>` 
-            };
-            
-            allPages.push(pageData);
-            
-            // Update with error page
-            setPageContents(prev => {
-              if (prev.some(p => p.page === subtopic.page)) return prev;
-              return [...prev, pageData];
-            });
-          }
-        }
-        
-        // Update progress
-        completedPages++;
-        const progressValue = 40 + (completedPages / totalSubtopics) * 50;
-        setProgress(Math.min(90, progressValue));
-      }
-    }
-
-    console.log(`✅ SUMMARY: Generated ${allPages.length} total pages for "${originalPrompt}"`);
-    setPageContents(allPages);
-    setProgress(100);
-    setLoading(false);
   };
 
   // Update loading state when page contents change
@@ -321,11 +142,11 @@ export default function GeneratedWebsite() {
     <div className="min-h-screen flex flex-col">
       <header className="bg-primary text-primary-foreground p-4 shadow-md">
         <div className="container mx-auto">
-        <div className="text-primary-foreground text-2xl font-bold">
-          {content?.title
-            ? content.title.replace(/\b\w/g, (char) => char.toUpperCase())
-            : originalPrompt.replace(/\b\w/g, (char) => char.toUpperCase())}
-        </div>
+          <div className="text-primary-foreground text-2xl font-bold">
+            {content?.title
+              ? content.title.replace(/\b\w/g, (char) => char.toUpperCase())
+              : originalPrompt.replace(/\b\w/g, (char) => char.toUpperCase())}
+          </div>
           <div className="flex flex-wrap gap-2 mt-2">
             <Badge variant="outline" className="bg-primary-foreground text-primary">
               {content?.level || getLevelDisplay(level)}
@@ -389,9 +210,7 @@ export default function GeneratedWebsite() {
                       <CardTitle>{subtopicTitle}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div>
-                        <PageRendererComponent htmlContent={currentPageContent?.refinedContent || ""} />
-                      </div>
+                      <PageRendererComponent htmlContent={currentPageContent?.refinedContent || ""} />
                     </CardContent>
                   </Card>
                   
