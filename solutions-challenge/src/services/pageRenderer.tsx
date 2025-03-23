@@ -1,137 +1,113 @@
 class PageRenderer {
-    applyStyles(htmlContent: string): string {
-      // ✅ Remove unnecessary markdown-style backticks
-      let cleanedHtml = htmlContent.replace(/```html|```/g, "").trim();
-  
-      // ✅ Convert inline and block math to MathJax format
-      cleanedHtml = cleanedHtml
-        .replace(/\$\$(.*?)\$\$/g, '\\[ $1 \\]') // Block equations
-        .replace(/\$(.*?)\$/g, '\\( $1 \\)'); // Inline equations
-  
-      const styledContent = `
-        <style>
-          :root {
-            --color-primary: var(--primary);
-            --color-text: var(--foreground);
-            --color-bg: var(--background);
-            --color-border: var(--border);
-            --color-muted: var(--muted);
-            --color-accent: var(--accent);
-            --color-secondary: var(--secondary);
-          }
-  
-          body {
-            font-family: "Inter", sans-serif;
-            line-height: 1.75;
-            padding: 24px;
-            background-color: var(--color-bg);
-            color: var(--color-text);
-          }
-  
-          h1, h2, h3 {
-            font-weight: 600;
-            color: var(--color-primary);
-          }
-  
-          h1 {
-            font-size: 1.875rem;
-            margin-bottom: 16px;
-          }
-  
-          h2 {
-            font-size: 1.5rem;
-            margin-bottom: 12px;
-            border-bottom: 2px solid var(--color-border);
-            padding-bottom: 6px;
-          }
-  
-          h3 {
-            font-size: 1.25rem;
-            margin-bottom: 8px;
-          }
-  
-          /* ✅ Improved paragraph color */
-          p {
-            font-size: 1rem;
-            margin-bottom: 16px;
-            color: var(--color-text);
-          }
-  
-          ul {
-            padding-left: 24px;
-            margin-bottom: 16px;
-          }
-  
-          ul li {
-            font-size: 1rem;
-            margin-bottom: 6px;
-            list-style: disc;
-          }
-  
-          strong {
-            color: var(--color-text);
-            font-weight: 700;
-          }
-  
-          .highlight {
-            background-color: var(--color-accent);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 500;
-          }
-  
-          .box {
-            background: var(--color-secondary);
-            padding: 16px;
-            border-left: 4px solid var(--color-primary);
-            border-radius: 6px;
-            box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05);
-            margin: 16px 0;
-          }
-  
-          .important {
-            color: var(--destructive);
-            font-weight: bold;
-            font-size: 1.125rem;
-          }
-  
-          .content {
-            max-width: 800px;
-            margin: auto;
-            padding: 16px;
-            background: var(--card);
-            border-radius: 8px;
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
-          }
-  
-          /* ✅ MathJax Styling */
-          .math-inline {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--color-text);
-          }
-  
-          .math-block {
-            display: block;
-            text-align: center;
-            font-size: 1.2rem;
-            margin: 12px 0;
-            color: var(--color-text);
-          }
-        </style>
-  
-        <!-- ✅ Load MathJax for math rendering -->
-        <script async src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-        <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  
-        <div class="content">
-          ${cleanedHtml}
-        </div>
-      `;
-  
-      return styledContent;
+    renderPage(htmlContent: string): string {
+        // Step 1: Remove Markdown-style triple backticks if present
+        htmlContent = htmlContent.replace(/^```html\s*|```$/g, '').trim();
+
+        // Step 2: Extract the <body> content if it exists
+        const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        let cleanedHtml = bodyMatch ? bodyMatch[1].trim() : htmlContent;
+
+        // Step 3: Remove <head> section and any redundant script tags for KaTeX
+        cleanedHtml = cleanedHtml.replace(/<head>[\s\S]*?<\/head>/i, '');
+        cleanedHtml = cleanedHtml.replace(/<script[^>]*src=['"]https:\/\/cdn.jsdelivr.net\/npm\/katex[^"]*['"][^>]*><\/script>/g, '');
+
+        return this.applyStyles(cleanedHtml);
     }
-  }
-  
-  export default new PageRenderer();
-  
+
+    applyStyles(htmlContent: string): string {
+        const styledContent = `
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Rendered Page</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
+
+            <!-- The loading of KaTeX is deferred to speed up page rendering -->
+            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js" integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous"></script>
+
+            <!-- To automatically render math in text elements, include the auto-render extension: -->
+            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"
+                onload="renderMathInElement(document.body);"></script>
+            <style>
+                :root {
+                    --color-primary: #007bff;
+                    --color-text: #333;
+                    --color-bg: #fff;
+                    --color-border: #ddd;
+                    --color-muted: #777;
+                    --color-accent: #f0f0f0;
+                    --color-secondary: #f9f9f9;
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: var(--color-text);
+                    background: var(--color-bg);
+                    padding: 20px;
+                }
+                .box {
+                    border: 1px solid var(--color-border);
+                    padding: 10px;
+                    background: var(--color-accent);
+                }
+                .highlight {
+                    background: yellow;
+                    font-weight: bold;
+                }
+                .important {
+                    color: red;
+                    font-weight: bold;
+                }
+                pre {
+                    background: var(--color-secondary);
+                    padding: 10px;
+                    border-radius: 5px;
+                    overflow-x: auto;
+                }
+                blockquote {
+                    border-left: 4px solid var(--color-primary);
+                    padding-left: 10px;
+                    color: var(--color-muted);
+                }
+            </style>
+        </head>
+        <body>
+            ${htmlContent}
+            <script>
+                window.onload = function () {
+                console.log("Checking if KaTeX is loaded...");
+                
+                if (typeof katex !== "undefined") {
+                    console.log("✅ KaTeX loaded successfully!");
+                } else {
+                    console.error("❌ KaTeX not loaded.");
+                }
+
+                if (typeof renderMathInElement !== "undefined") {
+                    console.log("✅ renderMathInElement function exists!");
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            { left: '\\(', right: '\\)', display: false },  
+                            { left: '\\[', right: '\\]', display: true },
+                            { left: '$', right: '$', display: false },
+                            { left: '$$', right: '$$', display: true }
+                        ],
+                        throwOnError: false
+                    });
+                } else {
+                    console.error("❌ renderMathInElement is not defined.");
+                }
+            };
+
+            </script>
+        </body>
+        </html>`;
+
+        return styledContent;
+    }
+}
+
+
+export default new PageRenderer();
