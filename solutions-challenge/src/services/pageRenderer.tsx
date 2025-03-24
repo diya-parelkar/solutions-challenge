@@ -1,18 +1,14 @@
 class PageRenderer {
     renderPage(htmlContent: string): string {
-        // Step 1: Remove Markdown-style triple backticks if present
         htmlContent = htmlContent.replace(/```html\s*|```$/g, '').trim();
 
-        // Step 2: Extract the <body> content if it exists
         const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
         let cleanedHtml = bodyMatch ? bodyMatch[1].trim() : htmlContent;
 
-        // Step 3: Wrap in a proper div container if not already wrapped
         if (!cleanedHtml.startsWith('<div')) {
             cleanedHtml = `<div class="content-container">${cleanedHtml}</div>`;
         }
 
-        // Step 4: Add basic HTML structure if content seems like plain text
         if (!cleanedHtml.includes('<')) {
             cleanedHtml = `<div class="content-container">
                 <h1>${cleanedHtml.split('\n')[0] || 'Content'}</h1>
@@ -20,9 +16,7 @@ class PageRenderer {
             </div>`;
         }
 
-        // Step 5: Ensure all math expressions have proper spacing for KaTeX
         cleanedHtml = cleanedHtml.replace(/\\(\(|\[)(.*?)\\(\)|\])/g, (match) => {
-            // Add spacing around math expressions for better rendering
             return match.startsWith('\\(') ? 
                 ` \\(${match.slice(2, -2)}\\) ` : 
                 ` \\[${match.slice(2, -2)}\\] `;
@@ -38,13 +32,10 @@ class PageRenderer {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Rendered Page</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" crossorigin="anonymous">
 
-            <!-- The loading of KaTeX is deferred to speed up page rendering -->
-            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js" integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous"></script>
-
-            <!-- To automatically render math in text elements, include the auto-render extension: -->
-            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"
+            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js" crossorigin="anonymous"></script>
+            <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js" crossorigin="anonymous"
                 onload="renderMathInElement(document.body);"></script>
             <style>
                 :root {
@@ -57,7 +48,6 @@ class PageRenderer {
                     --color-secondary: #f9f9f9;
                 }
                 
-                /* Base styles with higher specificity */
                 body .content-container {
                     font-family: Arial, sans-serif !important;
                     line-height: 1.6 !important;
@@ -68,7 +58,6 @@ class PageRenderer {
                     overflow-wrap: break-word !important;
                 }
                 
-                /* Headings with stronger specificity */
                 body .content-container h1,
                 body .content-container h2,
                 body .content-container h3,
@@ -85,13 +74,11 @@ class PageRenderer {
                 body .content-container h2 { font-size: 1.5em !important; }
                 body .content-container h3 { font-size: 1.3em !important; }
                 
-                /* Paragraph spacing */
                 body .content-container p {
                     margin-bottom: 1em !important;
                     text-align: left !important;
                 }
                 
-                /* List styles */
                 body .content-container ul,
                 body .content-container ol {
                     padding-left: 2em !important;
@@ -102,7 +89,6 @@ class PageRenderer {
                     margin-bottom: 0.5em !important;
                 }
                 
-                /* Tables */
                 body .content-container table {
                     border-collapse: collapse !important;
                     width: 100% !important;
@@ -115,7 +101,6 @@ class PageRenderer {
                     padding: 8px !important;
                 }
                 
-                /* Code blocks */
                 body .content-container pre {
                     background: var(--color-secondary) !important;
                     padding: 15px !important;
@@ -124,7 +109,6 @@ class PageRenderer {
                     margin-bottom: 1em !important;
                 }
                 
-                /* Blockquotes */
                 body .content-container blockquote {
                     border-left: 4px solid var(--color-primary) !important;
                     padding-left: 1em !important;
@@ -133,13 +117,11 @@ class PageRenderer {
                     color: var(--color-muted) !important;
                 }
                 
-                /* Links */
                 body .content-container a {
                     color: var(--color-primary) !important;
                     text-decoration: underline !important;
                 }
                 
-                /* Images */
                 body .content-container img {
                     max-width: 100% !important;
                     height: auto !important;
@@ -147,7 +129,6 @@ class PageRenderer {
                     margin: 1em auto !important;
                 }
                 
-                /* Special box */
                 body .content-container .box {
                     border: 1px solid var(--color-border) !important;
                     padding: 15px !important;
@@ -156,18 +137,12 @@ class PageRenderer {
                     margin-bottom: 1em !important;
                 }
 
-                /* Citations and references */
                 body .content-container cite {
                     font-style: italic !important;
                 }
 
                 body .content-container strong {
                     font-weight: bold !important;
-                }
-                
-                /* Force text color for all elements to ensure readability */
-                body .content-container * {
-                    color: var(--color-text) !important;
                 }
                 
                 body .content-container h1, 
@@ -179,7 +154,6 @@ class PageRenderer {
                     color: var(--color-text) !important;
                 }
                 
-                /* Fix math rendering */
                 body .katex {
                     font-size: 1.1em !important;
                     line-height: 1.4 !important;
@@ -195,7 +169,6 @@ class PageRenderer {
                     if (typeof katex !== "undefined") {
                         console.log("✅ KaTeX loaded successfully!");
                         
-                        // Apply KaTeX with more precise delimiters and options
                         if (typeof renderMathInElement !== "undefined") {
                             console.log("✅ renderMathInElement function exists!");
                             renderMathInElement(document.body, {

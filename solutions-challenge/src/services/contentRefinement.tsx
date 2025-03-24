@@ -63,6 +63,8 @@ class ContentRefinement {
             - **School Kid:** Use more complex quizzes, simple simulations, or short videos with real-world examples.
             - **Graduate Student:** Use complex simulations, data analysis tools, or short videos with expert interviews.
             - **Expert:** Use access to research data, code repositories, or platforms for collaboration and discussion.
+        12. **Generate code blocks using the <pre><code> tags, and specify the programming language using the class attribute (e.g., <code class="language-python">).**
+
 
         **Final Output:** Return the fully refined **HTML content in a <div class="content-container"> wrapper**, adhering to all specified guidelines.
     `;
