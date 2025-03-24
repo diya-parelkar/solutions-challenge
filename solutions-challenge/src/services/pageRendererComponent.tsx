@@ -7,7 +7,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      console.log("Checking for KaTeX and Highlight.js...");
+      console.log("Checking for Highlight.js...");
 
       const loadScript = (src: string): Promise<void> =>
         new Promise((resolve, reject) => {
@@ -20,8 +20,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
         });
 
       const loadCSS = (href: string, id: string) => {
-        let existingLink = document.getElementById(id);
-        if (!existingLink) {
+        if (!document.getElementById(id)) {
           const link = document.createElement("link");
           link.id = id;
           link.rel = "stylesheet";
@@ -76,9 +75,9 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
             // Create theme toggle button
             const themeToggleButton = document.createElement("button");
             themeToggleButton.className = "theme-toggle-button absolute top-2 right-2 z-10 p-1 rounded text-xs bg-gray-200 dark:bg-gray-700";
-            themeToggleButton.textContent = "Dark Mode";
+            themeToggleButton.textContent = "Dark Mode"; // Fix: Set correct initial button text
 
-            // Set default theme
+            // Default theme (Light Mode)
             preBlock.classList.add("hljs-light");
 
             // Toggle theme on click
@@ -88,12 +87,12 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
               if (preBlock.classList.contains("hljs-light")) {
                 preBlock.classList.remove("hljs-light");
                 preBlock.classList.add("hljs-dark");
-                themeToggleButton.textContent = "Light Mode";
+                themeToggleButton.textContent = "Light Mode"; // Fix: Update button text
                 themeLink.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css";
               } else {
                 preBlock.classList.remove("hljs-dark");
                 preBlock.classList.add("hljs-light");
-                themeToggleButton.textContent = "Dark Mode";
+                themeToggleButton.textContent = "Dark Mode"; // Fix: Update button text
                 themeLink.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css";
               }
 
@@ -133,8 +132,8 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
       <style>{`
         /* Light Theme */
         .hljs-light {
-          background: #f5f5f5 !important;
-          color: #333 !important;
+          background: #fdf6e3 !important; /* Solarized Light */
+          color: #586e75 !important;
           padding: 12px;
           border-radius: 6px;
           overflow-x: auto;
@@ -144,7 +143,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
 
         /* Dark Theme */
         .hljs-dark {
-          background: #282c34 !important;
+          background: #282c34 !important; /* Atom One Dark */
           color: #abb2bf !important;
           padding: 12px;
           border-radius: 6px;
@@ -168,7 +167,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
         }
 
         .theme-toggle-button:hover {
-          background:rgb(83, 73, 73);
+          background: rgb(83, 73, 73);
         }
       `}</style>
     </div>
