@@ -4,6 +4,7 @@ import ContentGenerator from "./contentGenerator";
 import ContentRefinement from "./contentRefinement";
 import PageRenderer from "./pageRenderer";
 import CacheService from "./cache";
+import ImageGenerationService from "./imageGeneration";
 
 // Define interfaces for the service
 interface PageContent {
@@ -41,6 +42,7 @@ export default class ContentFlowService {
   private setContent: (content: Content | null) => void;
   private setPageContents: (pageContents: PageContent[] | ((prev: PageContent[]) => PageContent[])) => void;
   private setError: (error: string | null) => void;
+  private imageService: ImageGenerationService;
 
   constructor(
     originalPrompt: string,
@@ -59,8 +61,9 @@ export default class ContentFlowService {
     this.setPageContents = setPageContents;
     this.setError = setError;
     this.cache = new CacheService();
-  }
-
+    this.imageService = new ImageGenerationService();
+  }  
+  
   // Start the content generation flow
   public async start(): Promise<void> {
     try {
@@ -148,26 +151,22 @@ export default class ContentFlowService {
   // Step 3: Generate detailed page content
   private async generateDetailedContent(content: Content): Promise<void> {
     if (!this.refinedPrompt) return;
-
+  
     let allPages: PageContent[] = [];
     let completedPages = 0;
     const totalSubtopics = content.topics.reduce((count, topic) => count + topic.subtopics.length, 0);
-
-    // Process topics and subtopics in order
+  
     for (const topic of content.topics) {
       for (const subtopic of topic.subtopics) {
         const cacheKey = `page-${this.originalPrompt}-${subtopic.page}`;
         const cachedPage = this.cache.get(cacheKey);
-
+  
         if (cachedPage) {
           const pageData = JSON.parse(cachedPage);
           allPages.push(pageData);
-          
-          // Add to state if not already there
           this.addPageToState(pageData);
         } else {
           try {
-            // Generate raw content for the page
             const rawContent = await ContentGenerator.generatePageContent(
               this.refinedPrompt,
               this.level,
@@ -177,50 +176,42 @@ export default class ContentFlowService {
               subtopic.page,
               subtopic.requires
             );
-
-            // Refine the raw content
-            const refinedContent = await ContentRefinement.refineContent(rawContent);
-
-            // Apply styles to the refined content
+  
+            let refinedContent = await ContentRefinement.refineContent(rawContent);
+            refinedContent = await this.imageService.processContent(refinedContent);
+  
             const styledContent = PageRenderer.applyStyles(refinedContent);
-
+  
             const pageData = { 
               page: subtopic.page, 
               rawContent, 
               refinedContent: styledContent 
             };
-            
-            // Save to cache
+  
             this.cache.set(cacheKey, JSON.stringify(pageData));
-            
             allPages.push(pageData);
-            
-            // Update the current state with the new page
             this.addPageToState(pageData);
           } catch (err) {
-            // Create error page
             const pageData = { 
               page: subtopic.page, 
               rawContent: `Error generating content for "${subtopic.title}"`, 
               refinedContent: `<p>Error generating content for "${subtopic.title}". Please try again later.</p>` 
             };
-            
+  
             allPages.push(pageData);
             this.addPageToState(pageData);
           }
         }
-        
-        // Update progress
+  
         completedPages++;
         const progressValue = 40 + (completedPages / totalSubtopics) * 50;
         this.setProgress(Math.min(90, progressValue));
       }
     }
-
-    // Final update with all pages
+  
     this.setPageContents(allPages);
     this.setProgress(100);
-  }
+  }  
 
   // Helper method to add a page to state if not already there
   private addPageToState(pageData: PageContent): void {
