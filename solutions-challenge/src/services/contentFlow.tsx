@@ -6,7 +6,6 @@ import PageRenderer from "./pageRenderer";
 import CacheService from "./cache";
 import ImageGenerationService from "./imageGeneration";
 
-// Define interfaces for the service
 interface PageContent {
   page: number;
   rawContent: string;
@@ -17,7 +16,7 @@ interface Content {
   title: string;
   level: string;
   contentType: string;
-  topics: any[]; // Using any for brevity, but you should define the full type
+  topics: any[]; 
   totalPages: number;
 }
 

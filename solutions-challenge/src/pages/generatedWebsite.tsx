@@ -246,7 +246,7 @@ export default function GeneratedWebsite() {
                 </Card>
               )}
             </div>
-            <Chatbot />
+            <Chatbot promptTitle={originalPrompt} level={level} />
           </div>
         )}
       </main>
