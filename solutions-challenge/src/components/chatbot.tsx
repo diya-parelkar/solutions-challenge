@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown"; 
-import { MessageSquare, X, Minus } from "lucide-react";
+import { MessageSquare, X, Minus, Send } from "lucide-react";
 import GeminiChatbotService from "../services/geminiChatbot";
 import { Button } from "@/components/ui/button";
-import { Rnd } from "react-rnd"; // Import Rnd for top-left resizing
+import { Rnd } from "react-rnd"; 
 import "react-resizable/css/styles.css";
 
 interface ChatbotProps {
@@ -19,8 +19,8 @@ const Chatbot: React.FC<ChatbotProps> = ({ promptTitle, level }) => {
   const chatRef = useRef<HTMLDivElement>(null);
 
   // Track chatbot dimensions and position
-  const [size, setSize] = useState({ width: 320, height: 400 });
-  const [position, setPosition] = useState({ x: window.innerWidth - 340, y: window.innerHeight - 420 });
+  const [size, setSize] = useState({ width: 380, height: 500 });
+  const [position, setPosition] = useState({ x: window.innerWidth - 400, y: window.innerHeight - 520 });
 
   // Auto-scroll to the bottom when messages update
   useEffect(() => {
@@ -55,77 +55,144 @@ const Chatbot: React.FC<ChatbotProps> = ({ promptTitle, level }) => {
     setMessages((prev) => [...prev, { type: "bot", text: botResponse }]);
   };
 
+  // Handle input submission on Enter key
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="fixed z-50">
       {isOpen ? (
         <Rnd
-          size={{ width: size.width, height: isMinimized ? 50 : size.height }}
+          size={{ width: size.width, height: isMinimized ? 60 : size.height }}
           position={position}
-          onDragStop={(e, d) => setPosition({ x: d.x, y: d.y })} // Update position on drag
+          onDragStop={(e, d) => setPosition({ x: d.x, y: d.y })}
           onResizeStop={(e, direction, ref, delta, pos) => {
             setSize({ width: ref.offsetWidth, height: ref.offsetHeight });
             setPosition(pos);
           }}
           default={{
-            x: window.innerWidth - 340, // Adjust initial position
-            y: window.innerHeight - 420,
-            width: 320,
-            height: 400,
+            x: window.innerWidth - 400,
+            y: window.innerHeight - 520,
+            width: 380,
+            height: 500,
           }}
-          minWidth={280}
-          minHeight={50}
-          maxWidth={500}
-          maxHeight={600}
-          className="bg-white shadow-lg rounded-lg border p-2"
-          enableResizing={{ topLeft: true, bottomRight: true }} // Enable top-left & bottom-right resizing
+          minWidth={320}
+          minHeight={60}
+          maxWidth={600}
+          maxHeight={700}
+          className="bg-white shadow-2xl rounded-xl border border-gray-200 overflow-hidden"
+          enableResizing={{ topLeft: true, bottomRight: true }}
         >
-          <div className="flex justify-between items-center border-b pb-2">
-            <h3 className="text-lg font-bold">Chatbot</h3>
-            <div className="flex gap-2">
-              <Minus className="cursor-pointer" onClick={() => setIsMinimized(!isMinimized)} />
-              <X className="cursor-pointer" onClick={() => setIsOpen(false)} />
+          {/* Header */}
+          <div className="bg-primary text-white flex justify-between items-center p-3 shadow-sm">
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="w-5 h-5" />
+              <h3 className="text-lg font-semibold">Ask Anything!</h3>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="hover:bg-primary-foreground/20 rounded-full p-1 transition-colors"
+              >
+                <Minus className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="hover:bg-primary-foreground/20 rounded-full p-1 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
           {!isMinimized && (
             <>
-              <div ref={chatRef} className="h-64 overflow-y-auto space-y-2 p-2 border-b">
+              {/* Messages Container */}
+              <div 
+                ref={chatRef} 
+                className="h-[calc(100%-120px)] overflow-y-auto p-4 space-y-3 bg-gray-50"
+              >
                 {messages.map((msg, index) => (
                   <div
                     key={index}
-                    className={`p-2 rounded-lg max-w-[75%] md:max-w-[85%] ${
-                      msg.type === "user"
-                        ? "bg-blue-500 text-white self-end ml-auto"
-                        : "bg-gray-200 text-black self-start mr-auto"
+                    className={`flex ${
+                      msg.type === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    <div
+                      className={`
+                        max-w-[85%] p-3 rounded-xl 
+                        ${
+                          msg.type === "user"
+                            ? "bg-primary text-white rounded-tr-none"
+                            : "bg-white text-black border shadow-sm rounded-tl-none"
+                        }
+                      `}
+                    >
+                      <ReactMarkdown 
+                        components={{
+                          a: ({node, ...props}) => (
+                            <a 
+                              {...props} 
+                              className="text-blue-500 hover:underline"
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            />
+                          )
+                        }}
+                      >
+                        {msg.text}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center mt-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="flex-1 border p-2 rounded-l"
-                  placeholder="Ask me something..."
-                />
-                <Button onClick={handleSendMessage} className="rounded-r">
-                  Send
-                </Button>
+              {/* Input Area */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-white border-t">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1 border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-primary/50 transition-all"
+                    placeholder="Type your message..."
+                  />
+                  <button 
+                    onClick={handleSendMessage}
+                    disabled={!input.trim()}
+                    className="
+                      bg-primary text-white p-2 rounded-full 
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-primary-foreground/90 transition-colors
+                    "
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </>
           )}
         </Rnd>
       ) : (
-        <Button
+        <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg bg-primary text-white"
+          className="
+            fixed bottom-6 right-6 
+            bg-primary text-white 
+            p-4 rounded-full 
+            shadow-2xl hover:shadow-lg 
+            transition-all 
+            hover:scale-105 
+            animate-bounce
+          "
         >
-          <MessageSquare className="w-6 h-6" />
-        </Button>
+          <MessageSquare className="w-7 h-7" />
+        </button>
       )}
     </div>
   );
