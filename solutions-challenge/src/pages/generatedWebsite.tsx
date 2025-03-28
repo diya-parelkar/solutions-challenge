@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageRendererComponent from './../services/pageRendererComponent';
 import ContentFlowService from '../services/contentFlow';
 import CacheService from '../services/cache';
+import Chatbot from "../components/chatbot";
 
 // Type definitions
 interface PageContent {
@@ -246,6 +247,7 @@ export default function GeneratedWebsite() {
                 </Card>
               )}
             </div>
+            <Chatbot />
           </div>
         )}
       </main>

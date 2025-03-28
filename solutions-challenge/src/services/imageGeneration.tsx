@@ -12,10 +12,10 @@ interface ContentPart {
   inlineData?: { data: string };
 }
 
-class ImageGenerationService {
+class ImageSelectionService {
   private genAI: GoogleGenerativeAI;
   private model: any;
-  private imageCache: Map<string, string>; // Cache for storing images
+  private imageCache: Map<string, string>;
 
   constructor() {
     const apiKey = import.meta.env.VITE_GEMINI_API_IMAGE_KEY;
@@ -31,77 +31,85 @@ class ImageGenerationService {
       } as any,
     });
 
-    this.imageCache = new Map(); // Initialize cache
+    this.imageCache = new Map();
   }
 
   async generateImage(prompt: string): Promise<string | null> {
-    // Check if the image is already in cache
     if (this.imageCache.has(prompt)) {
-      console.log(`Cache hit for prompt: "${prompt}"`);
       return this.imageCache.get(prompt) || null;
     }
 
     try {
-      const modifiedPrompt = `${prompt}. Please return the image as a Base64-encoded PNG without an image URL.`;
-      console.log("Sending prompt to Gemini API:", modifiedPrompt);
-
-      const response = await this.model.generateContent(modifiedPrompt);
-      console.log("Raw API response:", JSON.stringify(response, null, 2));
-
+      const response = await this.model.generateContent(
+        `${prompt}. Please return a Base64-encoded PNG.`
+      );
+      
       const parts = response.response?.candidates?.[0]?.content?.parts;
-      if (!parts?.length) {
-        throw new Error("No valid response from Gemini API");
-      }
-
-      const imagePart = parts.find((part: ContentPart) => part.inlineData?.data);
+      const imagePart = parts?.find((part: ContentPart) => part.inlineData?.data);
 
       if (imagePart?.inlineData?.data) {
         const base64Image = `data:image/png;base64,${imagePart.inlineData.data}`;
-        console.log("Extracted Base64 image (truncated):", base64Image.substring(0, 50) + "...");
-
-        // Store in cache
         this.imageCache.set(prompt, base64Image);
-
         return base64Image;
       }
-
-      throw new Error("No Base64 image data found in response");
     } catch (error) {
       console.error("Error generating image:", error);
-      return null;
     }
+    return null;
   }
 
   async processContent(content: string): Promise<string> {
-    const imagePlaceholderRegex = /\[\[image:(.*?)\]\]/g;
+    const imagePlaceholderRegex = /\[image:(.*?):(.*?)\]/g;
     let modifiedContent = content;
     const matches = [...content.matchAll(imagePlaceholderRegex)];
-
-    console.log(`Found ${matches.length} image placeholders`);
-
+  
     for (const match of matches) {
-      const prompt = match[1].trim();
-      console.log("Generating image for prompt:", prompt);
-
-      const base64Image = await this.generateImage(prompt);
-
+      const simplePrompt = match[1].trim();
+      const detailedPrompt = match[2].trim();
+      
+      console.log(`Processing image for: ${simplePrompt}`);
+      
+      let base64Image = await this.searchImage(simplePrompt);
+      let isGenerated = false;
+  
+      if (!base64Image) {
+        console.log(`No suitable image found for: ${simplePrompt}. Generating image...`);
+        base64Image = await this.generateImage(detailedPrompt);
+        isGenerated = base64Image !== null; // Mark as generated if an image is returned
+      }
+      
       modifiedContent = modifiedContent.replace(
         match[0],
         base64Image
           ? `<div style="text-align: center; margin: 10px 0;">
-              <img src="${base64Image}" alt="${prompt}" 
+              <img src="${base64Image}" alt="${simplePrompt}" 
                 style="width: 300px; height: 200px; object-fit: cover; border-radius: 8px; cursor: pointer;"
-                title="Prompt: ${prompt}"
+                title="Prompt: ${simplePrompt}"
               />
-              <p style="font-size: 12px; color: grey; margin-top: 5px;">AI Generated</p>
+              ${isGenerated ? '<p style="font-size: 12px; color: grey; margin-top: 5px;">AI Generated</p>' : ''}
             </div>`
-          : `<p style="color: red;">Failed to load image: ${prompt}</p>`
+          : `<p style="color: red;">Failed to load image: ${simplePrompt}</p>`
       );
     }
-
-    console.log("Processed content:", modifiedContent);
     return modifiedContent;
+  }  
+
+  async searchImage(query: string): Promise<string | null> {
+    try {
+      const searchResponse = await fetch(
+        `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&searchType=image&key=${import.meta.env.VITE_GOOGLE_SEARCH_API_KEY}&cx=${import.meta.env.VITE_GOOGLE_CSE_ID}`
+      );      
+      const data = await searchResponse.json();
+
+      if (data.items) {
+        const bestMatch = data.items.slice(0, 6).map((item: any) => item.link);
+        return bestMatch.length > 0 ? bestMatch[0] : null;
+      }
+    } catch (error) {
+      console.error("Error searching for image:", error);
+    }
+    return null;
   }
 }
 
-export default ImageGenerationService;
+export default ImageSelectionService;

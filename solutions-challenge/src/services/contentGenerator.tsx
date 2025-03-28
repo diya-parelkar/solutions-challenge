@@ -26,7 +26,6 @@ class ContentGenerator {
         }
   
         console.log("🔹 Generating content for:", pageTitle);
-  
         const contentPrompt = `
         You are a highly skilled website content creator and educational material developer. Your task is to generate the exact content for a specific page of an educational website, based on the provided page outline, level, content type, and visual aid requirements.
     
@@ -47,7 +46,7 @@ class ContentGenerator {
         2. Tailor the language, depth, and complexity of the content to the specified "${this.getLevelDisplay(level)}" level, but provide **more in-depth explanations and examples** than previously.
         3. **For "Concise - Quick Reads" and levels above "Explain me like 5", prioritize brevity and key concepts. Avoid unnecessary detail.**
         4. Adjust the length and detail of the content according to **"${contentType}"**, prioritizing **comprehensive coverage and detailed explanations**, even for concise content types.
-        5. ${imageRequired ? "Provide a detailed image prompt, formatted as [[image:prompt]]. Do not use alt attribute. Images should have minimal text." : ""}
+        5. ${imageRequired ? "Provide an image tag with the following format: [image: simple short search term : detailed prompt]. Do not use alt attribute. Images should have minimal text." : ""}
         6. ${simulationRequired ? "Describe the simulation's functionality and purpose, providing detailed steps and interactions to be included." : ""}
         7. ${animationRequired ? "Describe the animation's sequence and key elements, including specific visual cues and transitions." : ""}
         8. Ensure the content is engaging, informative, and aligns with the educational objectives, **placing a strong emphasis on detailed explanations and examples.**
@@ -71,6 +70,7 @@ class ContentGenerator {
     
         **Generated Page Content:**
     `;
+    
         const result = await this.model.generateContent(contentPrompt);
         const responseText = await result.response.text();
   

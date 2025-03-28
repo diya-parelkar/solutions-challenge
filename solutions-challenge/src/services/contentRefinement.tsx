@@ -43,8 +43,7 @@ class ContentRefinement {
         3. **Ensure Proper Math Formatting**: Use **LaTeX MathJax** for any **mathematical expressions**. Make sure to properly format mathematical expressions with \\( \\) for inline and \\[ \\] for display equations.
         4. **Include Engaging Analogies**: Provide **at least one simple analogy** for each **key concept**.
         5. **Structure Content with Proper HTML**: Wrap content in a <div class="content-container">. Use proper heading hierarchy (h1, h2, h3). Use <p> for paragraphs, <ul>/<ol> for lists, <blockquote> for quotes, etc.
-        6. **Image Handling**:
-            - Provide a detailed image prompt, formatted as [[image:prompt]]. Do not use alt attribute.
+        6. For images: Provide an image tag with the following format: [image: simple short search term : detailed prompt]. Do not use alt attribute. Images should have minimal text." : ""}
         7. **Ensure Valid HTML Output**: The final output should be **fully formatted HTML**. DO NOT include any triple backticks, markdown code blocks, or the words 'html' at the beginning or end of your response.
         8. **Return ONLY the HTML content**. Do NOT include any additional text, explanations, or greetings. Return the HTML as plain text.
         9. **Tables for Comparisons**: If a comparison is needed, use a table to display the information. Use the following HTML tags:
@@ -52,7 +51,7 @@ class ContentRefinement {
             - '<tr>' for table rows.
             - '<th>' for table headers.
             - '<td>' for table data cells.
-            - Ensure any image prompts within the table are formatted as [[image:prompt]]. Do not use alt attribute.
+            - Ensure any image prompts within the table are formatted as [image: simple short search term : detailed prompt]. Do not use alt attribute.
         10. **Adhere to the Image Guidelines in the Provided Image:**
             - **Explain Like 5 (School Kid):** Use colorful illustrations and cartoons with clear labels and minimal text within the image.
             - **School Kid:** Use more detailed diagrams and real-world photos with minimal text within the image.
