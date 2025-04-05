@@ -63,7 +63,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ promptTitle, level }) => {
   };
 
   return (
-    <div className="fixed z-50">
+    <div className="fixed z-[20]">
       {isOpen ? (
         <Rnd
           size={{ width: size.width, height: isMinimized ? 60 : size.height }}
@@ -76,13 +76,13 @@ const Chatbot: React.FC<ChatbotProps> = ({ promptTitle, level }) => {
           default={{
             x: window.innerWidth - 400,
             y: window.innerHeight - 520,
-            width: 380,
-            height: 500,
+            width: 30,
+            height: 50,
           }}
           minWidth={320}
           minHeight={60}
           maxWidth={600}
-          maxHeight={700}
+          maxHeight={400}
           className="bg-white shadow-2xl rounded-xl border border-gray-200 overflow-hidden"
           enableResizing={{ topLeft: true, bottomRight: true }}
         >
@@ -113,7 +113,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ promptTitle, level }) => {
               {/* Messages Container */}
               <div 
                 ref={chatRef} 
-                className="h-[calc(100%-120px)] overflow-y-auto p-4 space-y-3 bg-gray-50"
+                className="h-[calc(100%-100px)] overflow-y-auto p-4 space-y-3 bg-gray-50"
               >
                 {messages.map((msg, index) => (
                   <div
@@ -182,13 +182,12 @@ const Chatbot: React.FC<ChatbotProps> = ({ promptTitle, level }) => {
         <button
           onClick={() => setIsOpen(true)}
           className="
-            fixed bottom-6 right-6 
+            fixed bottom-4 right-4
             bg-primary text-white 
             p-4 rounded-full 
             shadow-2xl hover:shadow-lg 
             transition-all 
             hover:scale-105 
-            animate-bounce
           "
         >
           <MessageSquare className="w-7 h-7" />

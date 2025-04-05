@@ -3,11 +3,13 @@ import LandingPage from "./pages/landingPage";
 import GeneratedWebsite from "./pages/generatedWebsite";
 import Login from "./pages/login";
 import SignUp from "./pages/signup";
+import ScrollToTop from "./components/scrollToTop";
 
 
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/*" element={<LandingPage />} />
         <Route path="/generated-website" element={<GeneratedWebsite />} />
