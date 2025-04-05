@@ -1,14 +1,13 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import PageRendererComponent from './../services/pageRendererComponent';
 import ContentFlowService from '../services/contentFlow';
 import Chatbot from "../components/chatbot";
-import { Plus, Minus, BookOpen, List, ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { Plus, Minus, BookOpen, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 
 // Type definitions
 interface PageContent {
@@ -89,10 +88,8 @@ export default function GeneratedWebsite() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [progress, setProgress] = useState<number>(0);
   const [fontSize, setFontSize] = useState<number>(16);
-  const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
   const [currentTheme, setCurrentTheme] = useState<string>("default");
   const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [showChatbot, setShowChatbot] = useState(false);
   const hasFetchedContent = useRef(false);
 
   // Initialize content generation
@@ -161,7 +158,6 @@ export default function GeneratedWebsite() {
   const navigateToPage = (pageNumber: number) => {
     if (pageNumber >= 1 && content && pageNumber <= content.totalPages) {
       setCurrentPage(pageNumber);
-      setShowMobileNav(false);
       window.scrollTo(0, 0);
     }
   };

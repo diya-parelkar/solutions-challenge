@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { auth } from "@/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,17 +29,27 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
     e.preventDefault();
     setError("");
     setLoading(true);
-
+  
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard"); 
-      onClose(); // Close modal on successful login
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      // Get the ID token
+      const token = await user.getIdToken();
+      console.log("Firebase ID token:", token);
+  
+      // Optional: store in localStorage or use in API headers
+      localStorage.setItem("token", token);
+  
+      navigate("/dashboard");
+      onClose();
     } catch (err) {
       setError("Invalid credentials. Please check your email and password.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

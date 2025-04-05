@@ -1,18 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { MoonIcon, SunIcon } from "lucide-react";
 import PageRenderer from "./pageRenderer";
 
 const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent }) => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const renderedHtml = PageRenderer.renderPage(htmlContent);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
