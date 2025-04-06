@@ -32,13 +32,9 @@ function Navbar() {
     <header className="border-b">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-            <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
-            <path d="M3 9V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4" />
-            <path d="M12 12v5" />
-            <path d="M8 12v5" />
-            <path d="M16 12v5" />
-          </svg>
+        <span className="flex items-center gap-2">
+          <img src="/book.png" alt="EduGen Logo" className="w-6 h-6" />
+        </span>
           <Link to="/" className="font-bold text-xl">EduGen</Link>
         </div>
 

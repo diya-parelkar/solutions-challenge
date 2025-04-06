@@ -38,3 +38,4 @@ dist-ssr
 .DS_Store
 .env
 npm-debug.log
+.firebase/*
