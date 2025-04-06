@@ -5,17 +5,26 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "../components/navbar"
-import Prompt from "../assets/prompt.png"
-import Customize from "../assets/customize.png"
+import Prompt from "../assets/prompt1.png"
+import Customize from "../assets/customize1.png"
 import Generate from "../assets/generate.png"
-import Learn from "../assets/learn.png"
+import Learn from "../assets/learn1.png"
 import Photosynthesis from "../assets/photosynthesis.png"
 import Quantum from "../assets/quantum.png"
 import Climate from "../assets/climate.png"
 import GenerateDialog from "../components/GenerateDialog";
+import { useNavigate } from "react-router-dom";
+
 
 export default function LandingPage() {
   const [prompt, setPrompt] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate("/dashboard");
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -25,10 +34,9 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 text-center">
           {/* <Badge variant="outline" className="mb-4">SDG Goal 4: Quality Education</Badge> */}
           <h1 className="text-4xl md:text-6xl font-bold mb-6">Educational Websites from a Single Prompt</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Create custom, interactive learning experiences with animations, illustrations, and personalized content — all generated from a simple prompt.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
+            Type in a topic, and we’ll build an interactive learning site with images, lessons, and your personal AI study buddy.
           </p>
-          
           <div className="max-w-xl mx-auto mb-10">
             <div className="flex flex-col sm:flex-row gap-2">
               <Input 
@@ -58,7 +66,7 @@ export default function LandingPage() {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Animations & simulations
+              Images
             </span>
             <span className="flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
@@ -93,11 +101,11 @@ export default function LandingPage() {
                 )
               },
               {
-                title: "Interactive Elements",
-                description: "Engage with simulations, animations, and interactive questions that reinforce learning.",
+                title: "Chatbot Support",
+                description: "Get real-time assistance and answers with an AI-powered chatbot integrated throughout the learning experience.",
                 icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 )
               },
@@ -161,23 +169,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 bg-muted">
+      {/* How It Works Section - Enhanced Size */}
+      <section id="how-it-works" className="py-24 bg-muted">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Create your personalized learning experience in just a few simple steps.
+          <div className="text-center mb-20">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">How It Works</h2>
+            <p className="text-muted-foreground max-w-3xl mx-auto text-lg">
+              Build your personalized learning experience in just a few simple steps.
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <Tabs defaultValue="prompt" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="prompt">1. Enter Prompt</TabsTrigger>
-                <TabsTrigger value="customize">2. Customize</TabsTrigger>
-                <TabsTrigger value="generate">3. Generate</TabsTrigger>
-                <TabsTrigger value="learn">4. Learn</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 p-1 mb-8">
+                <TabsTrigger value="prompt" className="text-sm sm:text-base py-3">1. Enter Prompt</TabsTrigger>
+                <TabsTrigger value="customize" className="text-sm sm:text-base py-3">2. Customize</TabsTrigger>
+                <TabsTrigger value="generate" className="text-sm sm:text-base py-3">3. Generate</TabsTrigger>
+                <TabsTrigger value="learn" className="text-sm sm:text-base py-3">4. Learn</TabsTrigger>
               </TabsList>
               {[
                 {
@@ -185,45 +193,78 @@ export default function LandingPage() {
                   title: "Start with a simple prompt",
                   description: "Tell us what you want to learn about. It could be 'Photosynthesis,' 'Quantum Physics,' or even 'How to bake bread.'",
                   image: Prompt,
+                  icon: "Lightbulb",
                 },
                 {
                   value: "customize",
                   title: "Customize your learning experience",
-                  description: "Choose your learning level, content type (concise or detailed), and any specific areas you want to focus on.",
+                  description: "Choose your learning level, content type (concise or detailed).",
                   image: Customize,
+                  icon: "Settings",
                 },
                 {
                   value: "generate",
                   title: "Generate your educational website",
-                  description: "Our AI creates a complete educational website with interactive elements, images, animations, and structured content.",
+                  description: "Our AI creates a complete educational website with images, chatbot assistance, and structured content.",
                   image: Generate,
+                  icon: "Zap",
                 },
                 {
                   value: "learn",
                   title: "Learn at your own pace",
-                  description: "Work through the modules, complete quizzes, track your progress, and deepen your understanding through interactive content.",
-                  image: Learn,
+                  description: "Work through the modules, and deepen your understanding through interactive content.",
+                  image: Learn, 
+                  icon: "GraduationCap",
                 },
               ].map((tab) => (
-                <TabsContent key={tab.value} value={tab.value} className="p-6 bg-background rounded-lg mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">{tab.title}</h3>
-                      <p className="text-muted-foreground mb-4">{tab.description}</p>
-                      <Button variant="outline" className="mt-2">Learn More</Button>
+                <TabsContent key={tab.value} value={tab.value} className="p-8 bg-background rounded-xl shadow-md mt-6 border border-border">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 p-3 rounded-full">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                            {tab.icon === "Lightbulb" && <>
+                              <line x1="9" y1="18" x2="15" y2="18"></line>
+                              <line x1="10" y1="22" x2="14" y2="22"></line>
+                              <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+                            </>}
+                            {tab.icon === "Settings" && <>
+                              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </>}
+                            {tab.icon === "Zap" && <>
+                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </>}
+                            {tab.icon === "GraduationCap" && <>
+                              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                            </>}
+                          </svg>
+                        </div>
+                        <h3 className="text-2xl font-semibold">{tab.title}</h3>
+                      </div>
+                      <p className="text-muted-foreground text-lg leading-relaxed">{tab.description}</p>
                     </div>
-                    <div className="order-first md:order-last mb-6 md:mb-0">
-                      <img 
-                        src={tab.image} 
-                        alt={tab.title} 
-                        className="rounded-xl border border-gray-200 w-full"
-                        style={{ height: "300px", width: "100%", objectFit: "cover" }}
-                      />
+                    <div className="order-first lg:order-last mb-6 lg:mb-0">
+                    <img 
+                      src={tab.image} 
+                      alt={tab.title} 
+                      className="rounded-xl border border-gray-100 shadow-lg w-full h-auto object-contain"
+                    />
                     </div>
                   </div>
                 </TabsContent>
               ))}
             </Tabs>
+            <div className="text-center mt-16">
+              <Button size="lg" className="px-8 py-6 text-lg" onClick={handleGetStarted}>
+                Get Started
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
