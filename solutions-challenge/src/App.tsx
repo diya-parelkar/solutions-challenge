@@ -6,7 +6,12 @@ import ScrollToTop from "./components/scrollToTop";
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      forcedTheme={undefined}
+    >
       <ScrollToTop />
       <Routes>
         <Route path="/*" element={<LandingPage />} />

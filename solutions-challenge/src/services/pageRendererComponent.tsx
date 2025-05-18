@@ -1,10 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import PageRenderer from "./pageRenderer";
+import { useTheme } from "next-themes";
 
 const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent }) => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const { theme } = useTheme();
   const renderedHtml = PageRenderer.renderPage(htmlContent);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.setAttribute('data-theme', theme || 'light');
+      // Force a re-render of math and code highlighting
+      if ((window as any).renderMathInElement) {
+        (window as any).renderMathInElement(contentRef.current);
+      }
+      if ((window as any).hljs) {
+        contentRef.current.querySelectorAll("pre code").forEach((block) => {
+          (window as any).hljs.highlightElement(block as HTMLElement);
+        });
+      }
+    }
+  }, [theme]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -42,12 +58,10 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
       const loadHighlightJS = async () => {
         if (!(window as any).hljs) {
           console.log("📥 Loading Highlight.js...");
-          // Load both light and dark theme CSS for toggle functionality
           loadCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css");
           loadCSS("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css");
           await loadScript("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js");
 
-          // Load specific languages for Highlight.js
           const languages = [
             "python", "javascript", "typescript", "java", "cpp", "c", "html", "css",
             "sql", "bash", "shell", "json", "xml", "go", "ruby", "php"
@@ -91,9 +105,9 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
         setTimeout(() => {
           if ((window as any).hljs && contentRef.current) {
             console.log("✅ Highlighting code...");
-            const stylesheet = theme === 'light' 
-              ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css'
-              : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css';
+            const stylesheet = theme === 'dark' 
+              ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
+              : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
             
             const existingStylesheet = document.getElementById('hljs-theme');
             if (existingStylesheet) {
@@ -137,6 +151,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
         ref={contentRef} 
         dangerouslySetInnerHTML={{ __html: renderedHtml }} 
         className="relative"
+        data-theme={theme}
       />
     </div>
   );

@@ -62,21 +62,21 @@ const LandingPage = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-16">
         {/* Animated Background */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
           <motion.div
             className="absolute inset-0"
             animate={{
               background: [
-                'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)',
-                'radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)',
-                'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)',
+                'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%)',
+                'radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%)',
+                'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%)',
               ],
             }}
             transition={{
-              duration: 10,
+              duration: 15,
               repeat: Infinity,
               repeatType: "reverse",
             }}
@@ -87,78 +87,89 @@ const LandingPage = () => {
           style={{ opacity, scale }}
           className="container mx-auto px-6 relative z-10"
         >
-          <div className="text-center max-w-4xl mx-auto space-y-8">
+          <div className="text-center max-w-3xl mx-auto space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="space-y-6"
+              className="space-y-16"
             >
               <div className="flex items-center justify-center gap-3">
                 <img
                   src={BookLogo}
                   alt="EduGen Logo"
-                  className="w-8 h-8 rounded-lg shadow-lg bg-gradient-to-br from-white/80 to-emerald-100 p-1 dark:bg-gradient-to-br dark:from-white/60 dark:to-emerald-200 border border-white/70 dark:border-white/20"
+                  className="w-10 h-10 rounded-xl shadow-lg bg-gradient-to-br from-white/90 to-emerald-50 p-1.5 dark:bg-gradient-to-br dark:from-white/70 dark:to-emerald-100 border border-white/80 dark:border-white/20"
                 />
                 <Badge 
                   variant="outline" 
-                  className="px-4 py-1.5 text-sm font-medium bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                  className="px-4 py-1 text-sm font-medium bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
                 >
-                  AI-Powered Learning Platform
+                  AI-Powered Learning
                 </Badge>
               </div>
               
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
-                  Turn a Thought into a 
-                <span className="block mt-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
-                  Learning Experience
-                </span>
+              <h1 className="text-7xl md:text-7xl font-bold tracking-tight leading-[1.1]">
+                Turn a Thought into a <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">Learning Experience</span>
               </h1>
               
-              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                <strong>Create Your Own Learning Experience.</strong> <br></br>
-                Choose your level and how detailed you want it. Get a guided, visual journey through any concept.
-              </p>
+              {/* <p className="text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto leading-relaxed">
+                Create your own learning experience. Choose your level and get a guided, visual journey through any concept.
+              </p> */}
 
-              <div className="relative max-w-xl mx-auto mt-6">
-                <div className="relative">
+              <div className="relative max-w-2xl mx-auto">
+                <motion.div 
+                  className="relative"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 animate-gradient"></div>
                   <Input 
                     placeholder="What would you like to learn today?" 
-                    className="h-14 text-lg shadow-xl border-emerald-500/20 focus:border-emerald-500/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    className="relative h-16 text-xl shadow-2xl border-0 focus:ring-2 focus:ring-emerald-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-2xl pl-6 pr-32"
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     aria-label="Learning prompt input"
                   />
                   <Button 
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 bg-emerald-500 hover:bg-emerald-600 text-white"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/20 rounded-xl font-medium text-lg transition-all duration-200 hover:shadow-emerald-500/30 hover:scale-105"
                     onClick={() => setIsGenerateDialogOpen(true)}
                   >
                     Generate
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-2 h-5 w-5 animate-pulse" />
                   </Button>
-                </div>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                </motion.div>
+                <motion.p 
+                  className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
                   Try: "Explain quantum physics" or "How does photosynthesis work?"
-                </p>
+                </motion.p>
               </div>
 
-              <div className="flex flex-wrap justify-center gap-3 text-sm mt-8">
+              <div className="flex flex-wrap justify-center gap-2 text-sm">
                 {[
-                  { icon: <Sparkles className="w-4 h-4" />, text: "AI-Powered" },
-                  { icon: <BookOpen className="w-4 h-4" />, text: "Interactive Content" },
-                  { icon: <Lightbulb className="w-4 h-4" />, text: "Smart Learning" },
-                  { icon: <Zap className="w-4 h-4" />, text: "Instant Generation" }
+                  { icon: <Sparkles className="w-4 h-4" />, text: "AI-Powered", color: "from-emerald-500 to-teal-500" },
+                  { icon: <BookOpen className="w-4 h-4" />, text: "Interactive Content", color: "from-blue-500 to-indigo-500" },
+                  { icon: <Lightbulb className="w-4 h-4" />, text: "Smart Learning", color: "from-amber-500 to-orange-500" },
+                  { icon: <Zap className="w-4 h-4" />, text: "Instant Generation", color: "from-purple-500 to-pink-500" }
                 ].map((feature, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm px-4 py-2 rounded-full border border-emerald-500/20"
+                    whileHover={{ scale: 1.02, y: -1 }}
+                    className="group relative flex items-center gap-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-200"
                   >
-                    {feature.icon}
-                    <span>{feature.text}</span>
+                    <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-200`} />
+                    <div className="relative flex items-center gap-2">
+                      <div className={`text-${feature.color.split('-')[1]}`}>
+                        {feature.icon}
+                      </div>
+                      <span className="font-medium text-gray-700 dark:text-gray-200">{feature.text}</span>
+                    </div>
                   </motion.div>
                 ))}
               </div>
