@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import LoginModal from "../pages/login";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import LoginModal from "./LoginModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { auth } from "@/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
-
-  const auth = getAuth();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -33,7 +32,7 @@ function Navbar() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
         <span className="flex items-center gap-2">
-          <img src="/book.png" alt="EduGen Logo" className="w-6 h-6" />
+          <img src="/book.png" alt="EduGen Logo" className="w-8 h-8 rounded-lg shadow-lg bg-gradient-to-br from-white/80 to-emerald-100 p-1 dark:bg-gradient-to-br dark:from-white/60 dark:to-emerald-200 border border-white/70 dark:border-white/20" />
         </span>
           <Link to="/" className="font-bold text-xl">EduGen</Link>
         </div>

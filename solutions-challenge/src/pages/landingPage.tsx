@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,409 +14,774 @@ import Quantum from "../assets/quantum.png"
 import Climate from "../assets/climate.png"
 import GenerateDialog from "../components/GenerateDialog";
 import { useNavigate } from "react-router-dom";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
+import { Sun, Moon, Sparkles, BookOpen, Lightbulb, Zap, ArrowRight, ChevronRight, Github, Twitter, Linkedin } from "lucide-react";
+import BookLogo from "../assets/book.png";
 
+interface Example {
+  title: string;
+  level: string;
+  image: string;
+  tags: string[];
+  contentType: string;
+}
 
-export default function LandingPage() {
+const LandingPage = () => {
   const [prompt, setPrompt] = useState("");
-
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const { scrollYProgress } = useScroll();
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
 
-  const handleGetStarted = () => {
-    navigate("/dashboard");
+  const handleViewExample = (example: Example) => {
+    const prompt = example.title || 'Explore Example';
+    const level = example.level.toLowerCase().replace(/ /g, '-');
+    let contentType: string;
+    switch (example.contentType) {
+      case "Concise - Quick Reads":
+        contentType = "concise";
+        break;
+      case "Long form - Detailed":
+        contentType = "detailed";
+        break;
+      default:
+        contentType = example.contentType.toLowerCase().replace(/ /g, '-'); // Fallback
+    }
+    navigate(`/generated-website?prompt=${encodeURIComponent(prompt)}&level=${encodeURIComponent(level)}&contentType=${encodeURIComponent(contentType)}`);
+  };
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#1a1a1a] text-white' : 'bg-[#f7f7f8] text-black'}`}>
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-20 md:py-32 bg-gradient-to-b from-background to-muted">
-        <div className="container mx-auto px-4 text-center">
-          {/* <Badge variant="outline" className="mb-4">SDG Goal 4: Quality Education</Badge> */}
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Educational Websites from a Single Prompt</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
-            Type in a topic, and we’ll build an interactive learning site with images, lessons, and your personal AI study buddy.
-          </p>
-          <div className="max-w-xl mx-auto mb-10">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input 
-                placeholder="What would you like to learn today?" 
-                className="h-12"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-              <GenerateDialog prompt={prompt} />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Interactive lessons
-            </span>
-            <span className="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Multiple learning levels
-            </span>
-            <span className="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Images
-            </span>
-            <span className="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              AI Chatbot
-            </span>
-          </div>
+      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-16">
+        {/* Animated Background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+          <motion.div
+            className="absolute inset-0"
+            animate={{
+              background: [
+                'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)',
+                'radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)',
+                'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)',
+              ],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          />
         </div>
+
+        <motion.div 
+          style={{ opacity, scale }}
+          className="container mx-auto px-6 relative z-10"
+        >
+          <div className="text-center max-w-4xl mx-auto space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-center gap-3">
+                <img
+                  src={BookLogo}
+                  alt="EduGen Logo"
+                  className="w-8 h-8 rounded-lg shadow-lg bg-gradient-to-br from-white/80 to-emerald-100 p-1 dark:bg-gradient-to-br dark:from-white/60 dark:to-emerald-200 border border-white/70 dark:border-white/20"
+                />
+                <Badge 
+                  variant="outline" 
+                  className="px-4 py-1.5 text-sm font-medium bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                >
+                  AI-Powered Learning Platform
+                </Badge>
+              </div>
+              
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
+                  Turn a Thought into a 
+                <span className="block mt-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
+                  Learning Experience
+                </span>
+              </h1>
+              
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                <strong>Create Your Own Learning Experience.</strong> <br></br>
+                Choose your level and how detailed you want it. Get a guided, visual journey through any concept.
+              </p>
+
+              <div className="relative max-w-xl mx-auto mt-6">
+                <div className="relative">
+                  <Input 
+                    placeholder="What would you like to learn today?" 
+                    className="h-14 text-lg shadow-xl border-emerald-500/20 focus:border-emerald-500/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    aria-label="Learning prompt input"
+                  />
+                  <Button 
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 bg-emerald-500 hover:bg-emerald-600 text-white"
+                    onClick={() => setIsGenerateDialogOpen(true)}
+                  >
+                    Generate
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Try: "Explain quantum physics" or "How does photosynthesis work?"
+                </p>
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-3 text-sm mt-8">
+                {[
+                  { icon: <Sparkles className="w-4 h-4" />, text: "AI-Powered" },
+                  { icon: <BookOpen className="w-4 h-4" />, text: "Interactive Content" },
+                  { icon: <Lightbulb className="w-4 h-4" />, text: "Smart Learning" },
+                  { icon: <Zap className="w-4 h-4" />, text: "Instant Generation" }
+                ].map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center gap-2 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm px-4 py-2 rounded-full border border-emerald-500/20"
+                  >
+                    {feature.icon}
+                    <span>{feature.text}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">How We Enhance Learning</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our AI-powered platform creates tailored websites that adapt to different learning styles and levels.
-            </p>
-          </div>
+      {/* Generate Dialog */}
+      <GenerateDialog prompt={prompt} open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Features Section */}
+      <section className="py-20 relative">
+        <div className="container mx-auto px-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Why Choose Our Platform?
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-lg">
+              Experience learning like never before with our innovative features
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
-                title: "Personalized Learning",
-                description: "Choose between 5 different levels of explanation, from 'Explain like I'm 5' to 'Expert Level.'",
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                )
+                title: "Interactive Learning",
+                description: "Engage with dynamic content, animations, and interactive elements that make learning fun and effective.",
+                icon: <Sparkles className="w-6 h-6" />,
+                color: "from-emerald-500 to-teal-500"
               },
               {
-                title: "Chatbot Support",
-                description: "Get real-time assistance and answers with an AI-powered chatbot integrated throughout the learning experience.",
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                )
+                title: "AI-Powered Assistance",
+                description: "Get personalized help and explanations from our AI tutor, available 24/7 to answer your questions.",
+                icon: <Lightbulb className="w-6 h-6" />,
+                color: "from-teal-500 to-cyan-500"
               },
               {
                 title: "Visual Learning",
-                description: "Every topic includes relevant images, illustrations, and visual aids to enhance understanding.",
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                    <circle cx="9" cy="9" r="2" />
-                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                  </svg>
-                )
+                description: "Learn through beautiful illustrations, diagrams, and animations that bring concepts to life.",
+                icon: <BookOpen className="w-6 h-6" />,
+                color: "from-cyan-500 to-blue-500"
               },
               {
                 title: "Progress Tracking",
-                description: "Track your learning journey with progress bars, XP points, and achievements.",
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" x2="12" y1="20" y2="10" />
-                    <line x1="18" x2="18" y1="20" y2="4" />
-                    <line x1="6" x2="6" y1="20" y2="16" />
-                  </svg>
-                )
+                description: "Monitor your learning journey with detailed progress reports and achievement badges.",
+                icon: <Zap className="w-6 h-6" />,
+                color: "from-blue-500 to-indigo-500"
               },
               {
                 title: "Adaptive Content",
-                description: "Choose between quick reads or detailed long-form content based on your time constraints.",
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
-                )
+                description: "Content that adapts to your learning style and pace, ensuring optimal understanding.",
+                icon: <Lightbulb className="w-6 h-6" />,
+                color: "from-indigo-500 to-purple-500"
               },
               {
-                title: "Learn by Doing",
-                description: "Interactive quizzes and challenges after each module to reinforce what you've learned.",
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                    <path d="M12 9v4" />
-                    <path d="M12 17h.01" />
-                  </svg>
-                )
+                title: "Resource Library",
+                description: "Access a curated collection of additional resources, references, and study materials.",
+                icon: <BookOpen className="w-6 h-6" />,
+                color: "from-purple-500 to-pink-500"
               }
             ].map((feature, index) => (
-              <Card key={index} className="border-none shadow-sm">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4">
-                    {feature.icon}
-                  </div>
-                  <CardTitle>{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <Card className="h-full border-none bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                  <CardHeader>
+                    <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white mb-4`}>
+                      {feature.icon}
+                    </div>
+                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works Section - Enhanced Size */}
-      <section id="how-it-works" className="py-24 bg-muted">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">How It Works</h2>
-            <p className="text-muted-foreground max-w-3xl mx-auto text-lg">
-              Build your personalized learning experience in just a few simple steps.
+      {/* How It Works Section */}
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10"></div>
+        <div className="container mx-auto px-6 relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <Badge 
+              variant="outline" 
+              className="px-4 py-1.5 text-sm font-medium bg-emerald-500/10 text-emerald-500 border-emerald-500/20 mb-4"
+            >
+              Simple Process
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              How It Works
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-lg">
+              Create your personalized learning experience in three simple steps
             </p>
-          </div>
+          </motion.div>
 
-          <div className="max-w-5xl mx-auto">
-            <Tabs defaultValue="prompt" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 p-1 mb-8">
-                <TabsTrigger value="prompt" className="text-sm sm:text-base py-3">1. Enter Prompt</TabsTrigger>
-                <TabsTrigger value="customize" className="text-sm sm:text-base py-3">2. Customize</TabsTrigger>
-                <TabsTrigger value="generate" className="text-sm sm:text-base py-3">3. Generate</TabsTrigger>
-                <TabsTrigger value="learn" className="text-sm sm:text-base py-3">4. Learn</TabsTrigger>
-              </TabsList>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {[
                 {
-                  value: "prompt",
-                  title: "Start with a simple prompt",
-                  description: "Tell us what you want to learn about. It could be 'Photosynthesis,' 'Quantum Physics,' or even 'How to bake bread.'",
+                  step: "01",
+                  title: "Enter Your Prompt",
+                  description: "Tell us what you want to learn about. It could be anything from 'Quantum Physics' to 'How to bake bread.'",
                   image: Prompt,
-                  icon: "Lightbulb",
+                  icon: <Lightbulb className="w-6 h-6" />,
+                  color: "from-emerald-500 to-teal-500",
+                  delay: 0
                 },
                 {
-                  value: "customize",
-                  title: "Customize your learning experience",
-                  description: "Choose your learning level, content type (concise or detailed).",
-                  image: Customize,
-                  icon: "Settings",
-                },
-                {
-                  value: "generate",
-                  title: "Generate your educational website",
-                  description: "Our AI creates a complete educational website with images, chatbot assistance, and structured content.",
+                  step: "02",
+                  title: "AI Generation",
+                  description: "Our AI creates a complete learning experience with interactive content, animations, and resources.",
                   image: Generate,
-                  icon: "Zap",
+                  icon: <Zap className="w-6 h-6" />,
+                  color: "from-teal-500 to-cyan-500",
+                  delay: 0.2
                 },
                 {
-                  value: "learn",
-                  title: "Learn at your own pace",
-                  description: "Work through the modules, and deepen your understanding through interactive content.",
-                  image: Learn, 
-                  icon: "GraduationCap",
-                },
-              ].map((tab) => (
-                <TabsContent key={tab.value} value={tab.value} className="p-8 bg-background rounded-xl shadow-md mt-6 border border-border">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-3 rounded-full">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                            {tab.icon === "Lightbulb" && <>
-                              <line x1="9" y1="18" x2="15" y2="18"></line>
-                              <line x1="10" y1="22" x2="14" y2="22"></line>
-                              <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
-                            </>}
-                            {tab.icon === "Settings" && <>
-                              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </>}
-                            {tab.icon === "Zap" && <>
-                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                            </>}
-                            {tab.icon === "GraduationCap" && <>
-                              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                            </>}
-                          </svg>
+                  step: "03",
+                  title: "Learn & Explore",
+                  description: "Engage with the content, interact with the AI tutor, and track your progress as you learn.",
+                  image: Learn,
+                  icon: <BookOpen className="w-6 h-6" />,
+                  color: "from-cyan-500 to-blue-500",
+                  delay: 0.4
+                }
+              ].map((step, index) => (
+                <motion.div
+                  key={step.step}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: step.delay }}
+                  className="relative"
+                >
+                  {/* Connection Line */}
+                  {index < 2 && (
+                    <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-emerald-500/50 to-transparent" />
+                  )}
+                  
+                  <Card className="h-full border-none bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
+                    <CardHeader className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                          {step.icon}
                         </div>
-                        <h3 className="text-2xl font-semibold">{tab.title}</h3>
+                        <span className="text-4xl font-bold text-gray-200 dark:text-gray-700 group-hover:text-emerald-500 transition-colors duration-300">
+                          {step.step}
+                        </span>
                       </div>
-                      <p className="text-muted-foreground text-lg leading-relaxed">{tab.description}</p>
-                    </div>
-                    <div className="order-first lg:order-last mb-6 lg:mb-0">
-                    <img 
-                      src={tab.image} 
-                      alt={tab.title} 
-                      className="rounded-xl border border-gray-100 shadow-lg w-full h-auto object-contain"
-                    />
-                    </div>
-                  </div>
-                </TabsContent>
+                      <CardTitle className="text-2xl font-bold">{step.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
+                        {step.description}
+                      </p>
+                      <motion.div 
+                        className="relative overflow-hidden rounded-xl aspect-video"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <img 
+                          src={step.image} 
+                          alt={step.title} 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
-            </Tabs>
-            <div className="text-center mt-16">
-              <Button size="lg" className="px-8 py-6 text-lg" onClick={handleGetStarted}>
-                Get Started
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </Button>
             </div>
+
+            {/* Testimonials */}
+            <TestimonialsSection />
           </div>
         </div>
       </section>
 
       {/* Examples Section */}
-      <section id="examples" className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Example Learning Websites</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Explore some of the educational websites created by our users.
+      <section className="relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10"></div>
+        <div className="container mx-auto px-8 md:px-12 lg:px-16 relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Explore Examples
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-lg">
+              See how our platform transforms learning into an engaging experience
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
             {[
               {
                 title: "Introduction to Photosynthesis",
                 level: "School Kid",
                 image: Photosynthesis,
-                tags: ["Biology", "Interactive", "5-minute read"]
+                tags: ["Biology", "Interactive", "5 min read"],
+                contentType: "Concise - Quick Reads",
               },
               {
                 title: "Quantum Computing Fundamentals",
-                level: "Graduate Student",
+                level: "Expert",
                 image: Quantum,
-                tags: ["Physics", "Simulation", "20-minute read"]
+                tags: ["Physics", "Simulation", "15 min read"],
+                contentType: "Long form - Detailed",
               },
               {
                 title: "Climate Change Impacts",
-                level: "High School",
+                level: "Graduate Student",
                 image: Climate,
-                tags: ["Environmental Science", "Animations", "15-minute read"]
+                tags: ["Environmental Science", "Animations", "10 min read"],
+                contentType: "Concise - Quick Reads",
+              },
+              {
+                title: "History of Impressionism",
+                level: "School Kid",
+                image: Photosynthesis,
+                tags: ["Art", "Visual", "7 min read"],
+                contentType: "Concise - Quick Reads",
+              },
+              {
+                title: "Black Holes Explained",
+                level: "Graduate Student",
+                image: Quantum,
+                tags: ["Astronomy", "Animations", "12 min read"],
+                contentType: "Long form - Detailed",
+              },
+              {
+                title: "The Water Cycle",
+                level: "School Kid",
+                image: Climate,
+                tags: ["Geography", "Interactive", "6 min read"],
+                contentType: "Concise - Quick Reads",
               },
             ].map((example, index) => (
-              <Card key={index} className="overflow-hidden">
-                <div className="aspect-video relative">
-                  <img src={example.image} alt={example.title} className="object-cover w-full h-[400px]" />
-                  <Badge className="absolute top-2 right-2">{example.level}</Badge>
-                </div>
-                <CardHeader>
-                  <CardTitle>{example.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {example.tags.map((tag, tagIndex) => (
-                      <Badge key={tagIndex} variant="outline">{tag}</Badge>
-                    ))}
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -5, scale: 1.03 }}
+                className="h-full cursor-pointer group"
+              >
+                <Card className="overflow-hidden border-none bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col">
+                  <div className="h-48 relative group">
+                    <img 
+                      src={example.image} 
+                      alt={example.title} 
+                      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute top-4 right-4 flex flex-col gap-2">
+                      <Badge className="bg-black/60 backdrop-blur-md px-3 py-1.5 text-sm font-medium text-white border border-white/20">
+                        {example.level}
+                      </Badge>
+                      <Badge className="bg-emerald-500/90 backdrop-blur-md px-3 py-1.5 text-sm font-medium text-white border border-white/20">
+                        {example.contentType}
+                      </Badge>
+                    </div>
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full">View Example</Button>
-                </CardFooter>
-              </Card>
+                  <CardHeader className="space-y-4 flex-none">
+                    <div className="space-y-2">
+                      <CardTitle className="text-2xl font-bold">
+                        {example.title}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          {example.tags.find(tag => tag.includes('min read'))}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-gray-400/50"></span>
+                        <span className="flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-book-open"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                          {example.contentType}
+                        </span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6 flex-grow">
+                    <div className="flex flex-wrap gap-2">
+                      {example.tags
+                        .filter(tag => !tag.includes('min read'))
+                        .map((tag, tagIndex) => (
+                          <Badge 
+                            key={tagIndex} 
+                            variant="outline"
+                            className="bg-white/50 dark:bg-gray-900/50 px-3 py-1 text-sm font-medium"
+                          >
+                            {tag}
+                          </Badge>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-4 p-4 bg-gray-100/50 dark:bg-gray-800/50 rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-semibold mb-1">Learning Level</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {example.level}
+                        </p>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold mb-1">Content Type</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {example.contentType}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex-none">
+                    <Button 
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-white h-12 text-lg group"
+                      onClick={() => handleViewExample(example)}
+                    >
+                      View Example
+                      <motion.span
+                        className="ml-2"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        →
+                      </motion.span>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
             ))}
-          </div>
-          
-          <div className="text-center mt-10">
-            <Button size="lg">View All Examples</Button>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Learning Experience?</h2>
-          <p className="max-w-2xl mx-auto mb-8">
-            Join thousands of students and educators who are using our platform to create customized, interactive learning experiences.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" variant="secondary">Learn More</Button>
-            <Button size="lg" variant="default" className="bg-background text-foreground hover:bg-background/90">Get Started for Free</Button>
-          </div>
+      <section className="py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20"></div>
+        <motion.div 
+          className="absolute inset-0"
+          animate={{
+            background: [
+              'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.3) 0%, transparent 50%)',
+              'radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.3) 0%, transparent 50%)',
+              'radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.3) 0%, transparent 50%)',
+            ],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            repeatType: "reverse",
+          }}
+        />
+        <div className="container mx-auto px-6 relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-3xl mx-auto"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-8">
+              Ready to Transform Your Learning Experience?
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 text-lg mb-10">
+              Join thousands of learners who are already creating personalized, interactive learning experiences.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-6">
+              <Button 
+                size="lg" 
+                className="h-14 px-10 text-lg bg-emerald-500 hover:bg-emerald-600 text-white"
+                onClick={() => setIsGenerateDialogOpen(true)}
+              >
+                Get Started for Free
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="h-14 px-10 text-lg border-emerald-500/20 hover:border-emerald-500/40"
+              >
+                View Examples
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="py-16 relative">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                  <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
-                  <path d="M3 9V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4" />
-                  <path d="M12 12v5" />
-                  <path d="M8 12v5" />
-                  <path d="M16 12v5" />
-                </svg>
-                <span className="font-bold">EduGen</span>
+              <div className="flex items-center gap-3 mb-6">
+                <img
+                  src={BookLogo}
+                  alt="EduGen Logo"
+                  className="w-10 h-10 rounded-lg shadow-lg bg-gradient-to-br from-white/80 to-emerald-100 p-1 dark:bg-gradient-to-br dark:from-white/60 dark:to-emerald-200 border border-white/70 dark:border-white/20"
+                />
+                <div className="flex flex-col">
+                  <span className="font-bold text-2xl bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+                    EduGen
+                  </span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">AI-Powered Learning</span>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create educational websites with animations, illustrations, and personalized content from a simple prompt.
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Create beautiful, interactive learning experiences with AI-powered content generation.
               </p>
-              <div className="flex gap-4">
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                  </svg>
-                </a>
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                  </svg>
-                </a>
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-                  </svg>
-                </a>
+              <div className="flex gap-5">
+                {[
+                  { icon: <Twitter className="w-6 h-6" />, label: "Twitter" },
+                  { icon: <Github className="w-6 h-6" />, label: "GitHub" },
+                  { icon: <Linkedin className="w-6 h-6" />, label: "LinkedIn" }
+                ].map((social) => (
+                  <motion.a 
+                    key={social.label}
+                    href="#" 
+                    className="text-gray-600 dark:text-gray-300 hover:text-emerald-500 transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    aria-label={`Visit our ${social.label} page`}
+                  >
+                    {social.icon}
+                  </motion.a>
+                ))}
               </div>
             </div>
             
-            <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Documentation</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Tutorials</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">API Reference</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Community Forum</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">About Us</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Blog</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Careers</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms of Service</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">Cookie Policy</a></li>
-                <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground">GDPR Compliance</a></li>
-              </ul>
-            </div>
+            {[
+              {
+                title: "Resources",
+                links: ["Documentation", "Tutorials", "API Reference", "Community"]
+              },
+              {
+                title: "Company",
+                links: ["About", "Blog", "Careers", "Contact"]
+              },
+              {
+                title: "Legal",
+                links: ["Terms", "Privacy", "Cookies", "GDPR"]
+              }
+            ].map((section) => (
+              <div key={section.title}>
+                <h3 className="font-semibold text-lg mb-6">{section.title}</h3>
+                <ul className="space-y-4">
+                  {section.links.map((link) => (
+                    <li key={link}>
+                      <motion.a 
+                        href="#" 
+                        className="text-sm text-gray-600 dark:text-gray-300 hover:text-emerald-500 transition-colors"
+                        whileHover={{ x: 5 }}
+                      >
+                        {link}
+                      </motion.a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
           
-          <div className="border-t mt-12 pt-6 text-center text-sm text-muted-foreground">
+          <div className="border-t border-emerald-500/10 mt-16 pt-8 text-center text-sm text-gray-600 dark:text-gray-300">
             <p>&copy; {new Date().getFullYear()} EduGen. All rights reserved.</p>
           </div>
         </div>
       </footer>
+
+      {/* Theme Switcher */}
+      <motion.button
+        className="fixed bottom-8 right-8 p-4 rounded-full bg-white dark:bg-gray-900 shadow-lg border border-emerald-500/20"
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      >
+        {theme === 'dark' ? (
+          <Sun className="w-6 h-6 text-emerald-500" />
+        ) : (
+          <Moon className="w-6 h-6 text-emerald-500" />
+        )}
+      </motion.button>
     </div>
   );
 }
+
+const TestimonialsSection = () => {
+  // Testimonials data
+  const testimonials = [
+    {
+      name: "Dr. Sarah Chen",
+      role: "High School Science Teacher",
+      image: "https://i.pravatar.cc/150?img=1",
+      quote: "EduGen has revolutionized how I teach complex scientific concepts. The interactive animations make abstract ideas tangible for my students.",
+      rating: 5,
+      tags: ["Science", "Education", "Interactive Learning"]
+    },
+    {
+      name: "James Wilson",
+      role: "Self-Learner",
+      image: "https://i.pravatar.cc/150?img=2",
+      quote: "As someone learning programming, the step-by-step visualizations have been invaluable. It's like having a personal tutor available 24/7.",
+      rating: 5,
+      tags: ["Programming", "Self-Learning", "Visual Learning"]
+    },
+    {
+      name: "Maria Rodriguez",
+      role: "University Professor",
+      image: "https://i.pravatar.cc/150?img=3",
+      quote: "The platform's ability to generate comprehensive learning materials has saved me countless hours of preparation time.",
+      rating: 5,
+      tags: ["Higher Education", "Time-Saving", "Content Generation"]
+    }
+  ];
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.8 }}
+      className="mt-12"
+    >
+      <div className="text-center mb-12">
+        <Badge 
+          variant="outline" 
+          className="px-4 py-1.5 text-sm font-medium bg-emerald-500/10 text-emerald-500 border-emerald-500/20 mb-4"
+        >
+          Success Stories
+        </Badge>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          What Our Users Say
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          Join thousands of satisfied educators and learners who have transformed their teaching and learning experience
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {testimonials.map((testimonial, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.2 }}
+            className="relative"
+          >
+            <Card className="h-full border-none bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img 
+                      src={testimonial.image} 
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500/20"
+                    />
+                    <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{testimonial.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{testimonial.role}</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-1">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <blockquote className="text-gray-600 dark:text-gray-300 italic">
+                  "{testimonial.quote}"
+                </blockquote>
+                <div className="flex flex-wrap gap-2">
+                  {testimonial.tags.map((tag, i) => (
+                    <Badge 
+                      key={i}
+                      variant="outline"
+                      className="bg-emerald-500/5 text-emerald-500 border-emerald-500/10"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+export default LandingPage;
