@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from 'react-router-dom';
+import { useThemeContext } from '../components/ThemeProvider';
 // import LoginModal from "../pages/login";
 
 interface GenerateDialogProps {
@@ -28,6 +29,7 @@ interface GenerateDialogProps {
 
 export default function GenerateDialog({ prompt, open, onOpenChange }: GenerateDialogProps) {
   const navigate = useNavigate();
+  const { getCombinedClasses } = useThemeContext();
   const [level, setLevel] = React.useState("");
   const [contentType, setContentType] = React.useState("");
 
@@ -43,8 +45,8 @@ export default function GenerateDialog({ prompt, open, onOpenChange }: GenerateD
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange} >
-        <DialogContent className="max-w-lg mx-auto p-0 bg-transparent border-none shadow-none">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-emerald-500/10 relative">
+        <DialogContent className="max-w-lg mx-auto p-0 bg-white dark:bg-gray-900 border-none shadow-none">
+          <div className={getCombinedClasses('background.card', 'rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-emerald-500/10 relative bg-white dark:bg-gray-900')}>
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl"
               onClick={() => onOpenChange(false)}
@@ -63,22 +65,22 @@ export default function GenerateDialog({ prompt, open, onOpenChange }: GenerateD
             </div>
             
             <DialogHeader className="hidden">{/* Hide original header */}</DialogHeader>
-            <DialogTitle>Customize Your Learning Experience</DialogTitle>
+            <DialogTitle className={getCombinedClasses('text.primary', '')}>Customize Your Learning Experience</DialogTitle>
             <br></br>
-            <DialogDescription>
+            <DialogDescription className={getCombinedClasses('text.secondary', '')}>
               Choose the level of explanation and content type that best fits your needs.
             </DialogDescription>
             <div className="grid gap-6 py-4">
               <div className="grid gap-2">
-                <label htmlFor="level" className="text-sm font-medium">
+                <label htmlFor="level" className={getCombinedClasses('text.primary', 'text-sm font-medium')}>
                   Learning Level
                 </label>
                 <Select value={level} onValueChange={setLevel} >
-                  <SelectTrigger className="h-10 text-base border-emerald-500/20 focus:border-emerald-500/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm placeholder:text-gray-400 dark:placeholder:text-gray-500">
+                  <SelectTrigger className={getCombinedClasses('background.input', 'h-10 text-base border-emerald-500/20 focus:border-emerald-500/40 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-white dark:bg-gray-800')}>
                     <SelectValue placeholder="Select a level" />
                   </SelectTrigger >
-                  <SelectContent>
-                    <SelectGroup className="bg-white dark:bg-gray-800 shadow-md">
+                  <SelectContent className="bg-white dark:bg-gray-800">
+                    <SelectGroup className={getCombinedClasses('background.card', 'shadow-md text-gray-900 dark:text-white bg-white dark:bg-gray-800')}>
                       <SelectLabel>Learning Levels</SelectLabel>
                       <SelectItem value="explain-like-im-5">Explain Like I'm 5</SelectItem>
                       <SelectItem value="school-kid">School Kid</SelectItem>
@@ -90,15 +92,15 @@ export default function GenerateDialog({ prompt, open, onOpenChange }: GenerateD
                 </Select>
               </div>
               <div className="grid gap-2">
-                <label htmlFor="contentType" className="text-sm font-medium">
+                <label htmlFor="contentType" className={getCombinedClasses('text.primary', 'text-sm font-medium')}>
                   Content Type
                 </label>
                 <Select value={contentType} onValueChange={setContentType}>
-                  <SelectTrigger className="h-10 text-base border-emerald-500/20 focus:border-emerald-500/40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm placeholder:text-gray-400 dark:placeholder:text-gray-500">
+                  <SelectTrigger className={getCombinedClasses('background.input', 'h-10 text-base border-emerald-500/20 focus:border-emerald-500/40 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-white dark:bg-gray-800')}>
                     <SelectValue placeholder="Select content type" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup className="bg-white dark:bg-gray-800 shadow-md">
+                  <SelectContent className="bg-white dark:bg-gray-800">
+                    <SelectGroup className={getCombinedClasses('background.card', 'shadow-md text-gray-900 dark:text-white bg-white dark:bg-gray-800')}>
                       <SelectLabel>Content Types</SelectLabel>
                       <SelectItem value="concise">Concise - Quick Reads</SelectItem>
                       <SelectItem value="detailed">Long Form - Detailed</SelectItem>
@@ -109,7 +111,7 @@ export default function GenerateDialog({ prompt, open, onOpenChange }: GenerateD
             </div>
             
             <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6">
-              <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
+              <Button variant="outline" onClick={() => onOpenChange(false)} className={getCombinedClasses('text.primary', 'w-full sm:w-auto')}>
                 Cancel
               </Button>
               <Button 

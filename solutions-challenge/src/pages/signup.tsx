@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { auth } from "../firebase";
 import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { useThemeContext } from "../components/ThemeProvider";
 
 const SignUp = ({ open, onClose, onLogin }: { open: boolean; onClose: () => void; onLogin?: () => void }) => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ const SignUp = ({ open, onClose, onLogin }: { open: boolean; onClose: () => void
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { getCombinedClasses } = useThemeContext();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,14 +60,14 @@ const SignUp = ({ open, onClose, onLogin }: { open: boolean; onClose: () => void
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg mx-auto p-0 bg-transparent border-none shadow-none">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-emerald-500/10 relative">
+      <DialogContent className="max-w-lg mx-auto p-0 bg-white dark:bg-gray-900 border-none shadow-none">
+        <div className={getCombinedClasses('background.card', 'rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-emerald-500/10 relative')}>
           <button
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl"
+            className={getCombinedClasses('text.secondary', 'absolute top-3 right-3 hover:text-foreground text-xl')}
             onClick={onClose}
             aria-label="Close"
-            type="button"
           >
+            
           </button>
           <div className="flex flex-col items-center mb-6">
             <img
@@ -74,40 +76,40 @@ const SignUp = ({ open, onClose, onLogin }: { open: boolean; onClose: () => void
               className="w-12 h-12 rounded-lg shadow-lg bg-gradient-to-br from-white/80 to-emerald-100 p-2 dark:bg-gradient-to-br dark:from-white/60 dark:to-emerald-200 border border-white/70 dark:border-white/20 mb-2"
             />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent mb-1">EduGen</h1>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">Create your EduGen account</p>
+            <p className={getCombinedClasses('text.secondary', 'text-sm')}>Create your EduGen account</p>
           </div>
           <form onSubmit={handleSignUp} className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 block">Email</label>
+              <label className={getCombinedClasses('text.primary', 'text-sm font-medium mb-1 block')}>Email</label>
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-12 text-base bg-white/90 dark:bg-gray-800/80 border-emerald-500/20 focus:border-emerald-500/40"
+                className={getCombinedClasses('background.input', 'h-12 text-base border-emerald-500/20 focus:border-emerald-500/40 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500')}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 block">Password</label>
+              <label className={getCombinedClasses('text.primary', 'text-sm font-medium mb-1 block')}>Password</label>
               <Input
                 type="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-12 text-base bg-white/90 dark:bg-gray-800/80 border-emerald-500/20 focus:border-emerald-500/40"
+                className={getCombinedClasses('background.input', 'h-12 text-base border-emerald-500/20 focus:border-emerald-500/40 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500')}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 block">Confirm Password</label>
+              <label className={getCombinedClasses('text.primary', 'text-sm font-medium mb-1 block')}>Confirm Password</label>
               <Input
                 type="password"
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="h-12 text-base bg-white/90 dark:bg-gray-800/80 border-emerald-500/20 focus:border-emerald-500/40"
+                className={getCombinedClasses('background.input', 'h-12 text-base border-emerald-500/20 focus:border-emerald-500/40 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500')}
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}

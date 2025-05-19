@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import PageRendererComponent from './../services/pageRendererComponent';
 import ContentFlowService from '../services/contentFlow';
 import Chatbot from "../components/chatbot";
+import { useThemeContext } from '../components/ThemeProvider';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -32,10 +33,10 @@ import {
   Download,
   Printer,
   ChevronDown,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  Eye
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "next-themes";
 import {
   Tooltip,
   TooltipContent,
@@ -82,7 +83,7 @@ const LEVEL_DISPLAY: Record<string, string> = {
 export default function GeneratedWebsite() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
+  const { mode, colorblind, toggleMode, toggleColorblind, getClasses, getCombinedClasses } = useThemeContext();
 
   // Extract query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -177,19 +178,6 @@ export default function GeneratedWebsite() {
     }
   };
 
-  // Font size handlers
-  const increaseFontSize = () => {
-    if (fontSize < 24) {
-      setFontSize(fontSize + 1);
-    }
-  };
-
-  const decreaseFontSize = () => {
-    if (fontSize > 12) {
-      setFontSize(fontSize - 1);
-    }
-  };
-
   // Get loading status message
   const getLoadingStatusMessage = () => {
     if (progress < 20) return "Refining prompt...";
@@ -228,34 +216,34 @@ export default function GeneratedWebsite() {
 
   return (
     <div 
-      className="min-h-screen bg-white dark:bg-[#1a1a1a] transition-colors duration-300"
+      className={`min-h-screen transition-colors duration-300 ${getClasses('background.primary')}`}
       style={{ 
         fontSize: `${fontSize}px`,
         lineHeight: lineHeight,
       }}
     >
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-[#1a1a1a]/80 border-b border-gray-200 dark:border-gray-800">
+      <header className={`sticky top-0 z-50 backdrop-blur-lg ${getClasses('background.header')} border-b ${getClasses('border.primary')}`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className={getCombinedClasses('text.secondary', 'hover:bg-gray-100 dark:hover:bg-gray-800')}
                 onClick={() => navigate("/")}
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
+                <div className={getCombinedClasses('text.primary', 'text-2xl font-bold')}>
                   {content?.title || originalPrompt}
-                </h1>
+                </div>
                 <div className="flex gap-2 mt-1">
-                  <Badge variant="outline" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/10">
+                  <Badge variant="outline" className={getCombinedClasses('badge.emerald', '')}>
                     {content?.level || getLevelDisplay(level)}
                   </Badge>
-                  <Badge variant="outline" className="bg-blue-500/5 text-blue-500 border-blue-500/10">
+                  <Badge variant="outline" className={getCombinedClasses('badge.blue', '')}>
                     {content?.contentType || (contentType === "concise" ? "Quick Read" : "Detailed")}
                   </Badge>
                 </div>
@@ -265,7 +253,7 @@ export default function GeneratedWebsite() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className={getCombinedClasses('text.secondary', 'hover:bg-gray-100 dark:hover:bg-gray-800')}
                 onClick={() => setShowBookmarks(!showBookmarks)}
               >
                 <Bookmark className="h-5 w-5" />
@@ -273,19 +261,19 @@ export default function GeneratedWebsite() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className={getCombinedClasses('text.secondary', 'hover:bg-gray-100 dark:hover:bg-gray-800')}
+                onClick={toggleMode}
               >
-                {theme === 'dark' ? (
+                {mode === 'dark' ? (
                   <Sun className="h-5 w-5" />
                 ) : (
                   <Moon className="h-5 w-5" />
                 )}
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={getCombinedClasses('text.secondary', 'hover:bg-gray-100 dark:hover:bg-gray-800')}
                 onClick={() => setShowSettings(!showSettings)}
               >
                 <Settings className="h-5 w-5" />
@@ -302,86 +290,55 @@ export default function GeneratedWebsite() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800"
+            className={`fixed top-[72px] left-0 right-0 z-50 ${getClasses('background.header')} backdrop-blur-lg border-b ${getClasses('border.primary')} shadow-lg`}
+            style={{ fontSize: '14px' }}
           >
             <div className="container mx-auto px-4 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="font-medium flex items-center gap-2">
+                  <h3 className={`font-medium flex items-center gap-2 ${getClasses('text.primary')}`}>
                     <Type className="h-4 w-4" />
                     Typography
                   </h3>
-                  <div className="space-y-2">
-                    <label className="text-sm">Font Size</label>
-                    <Slider
-                      value={[fontSize]}
-                      min={12}
-                      max={24}
-                      step={1}
-                      onValueChange={([value]) => setFontSize(value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm">Line Height</label>
-                    <Slider
-                      value={[lineHeight * 100]}
-                      min={100}
-                      max={200}
-                      step={5}
-                      onValueChange={([value]) => setLineHeight(value / 100)}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-medium flex items-center gap-2">
-                    <Layout className="h-4 w-4" />
-                    Layout
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Show Navigation</span>
-                    <Switch
-                      checked={showNavigation}
-                      onCheckedChange={setShowNavigation}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Fullscreen Mode</span>
+                  <div className="flex items-center gap-4">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
-                      onClick={toggleFullscreen}
+                      onClick={() => setFontSize(prev => Math.max(12, prev - 1))}
+                      className="h-8 w-8"
                     >
-                      {isFullscreen ? (
-                        <Minimize2 className="h-4 w-4" />
-                      ) : (
-                        <Maximize2 className="h-4 w-4" />
-                      )}
+                      <span className="text-lg">-</span>
+                    </Button>
+                    <span className={`text-sm font-medium ${getClasses('text.secondary')}`}>{fontSize}px</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setFontSize(prev => Math.min(24, prev + 1))}
+                      className="h-8 w-8"
+                    >
+                      <span className="text-lg">+</span>
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-medium flex items-center gap-2">
-                    <Share2 className="h-4 w-4" />
-                    Export Options
+                  <h3 className={`font-medium flex items-center gap-2 ${getClasses('text.primary')}`}>
+                    <Eye className="h-4 w-4" />
+                    Accessibility
                   </h3>
-                  <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${getClasses('text.secondary')}`}>Colorblind Mode</span>
                     <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => window.print()}
+                      variant={colorblind ? "default" : "outline"}
+                      size="sm"
+                      onClick={toggleColorblind}
+                      className={`${
+                        colorblind
+                          ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                          : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
                     >
-                      <Printer className="h-4 w-4 mr-2" />
-                      Print
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => {/* Implement PDF export */}}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Export as PDF
+                      {colorblind ? 'Enabled' : 'Disabled'}
                     </Button>
                   </div>
                 </div>
@@ -392,25 +349,25 @@ export default function GeneratedWebsite() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className={`container mx-auto px-4 py-6 transition-all duration-300 ${showSettings ? 'mt-[120px]' : ''}`}>
         {loading && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="max-w-3xl mx-auto"
           >
-            <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <Card className={`border-0 shadow-lg ${getClasses('background.card')} backdrop-blur-sm`}>
               <CardContent className="p-8">
                 <Progress value={progress} className="h-2" />
-                <p className="text-center mt-4 font-medium text-gray-600 dark:text-gray-300">
+                <p className={`text-center mt-4 font-medium ${getClasses('text.secondary')}`}>
                   {getLoadingStatusMessage()}
                 </p>
                 <div className="mt-8 space-y-4">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded-full w-3/4 animate-pulse"></div>
+                  <div className={`h-4 ${getClasses('states.loading.skeleton')} rounded-full w-3/4 animate-pulse`}></div>
                   <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded-full w-5/6 animate-pulse"></div>
+                    <div className={`h-4 ${getClasses('states.loading.skeleton')} rounded-full animate-pulse`}></div>
+                    <div className={`h-4 ${getClasses('states.loading.skeleton')} rounded-full animate-pulse`}></div>
+                    <div className={`h-4 ${getClasses('states.loading.skeleton')} rounded-full w-5/6 animate-pulse`}></div>
                   </div>
                 </div>
               </CardContent>
@@ -564,57 +521,61 @@ export default function GeneratedWebsite() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="max-w-3xl mx-auto">
+                  <div className="max-w-7xl mx-auto">
                     <div className="mb-8 relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-[#1a1a1a] rounded-lg"></div>
-                      <div className="relative p-8">
-                        <h1 className="text-3xl font-serif font-medium text-gray-900 dark:text-gray-100 mb-4">
-                          {subtopicTitle}
-                        </h1>
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                          <span className="flex items-center gap-2">
-                            <BookOpen className="h-4 w-4" />
-                            {content?.level || getLevelDisplay(level)}
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <Sparkles className="h-4 w-4" />
-                            {content?.contentType || (contentType === "concise" ? "Quick Read" : "Detailed")}
-                          </span>
+                      <div className="border-2 border-gray-200/80 dark:border-white/10 shadow-xl bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-sm overflow-hidden relative rounded-lg">
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-100/30 to-gray-200/30 dark:from-white/5 dark:to-white/10 pointer-events-none"></div>
+                        <div className="relative p-8">
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
+                              {content?.topics.find(topic => 
+                                topic.subtopics.some(subtopic => subtopic.page === currentPage)
+                              )?.title || 'Current Topic'}
+                            </span>
+                          </div>
+                          <div className={getCombinedClasses('text.primary', 'font-serif text-5xl flex items-center gap-2')}>
+                            {subtopicTitle}
+                          </div>
+                          <div className={getCombinedClasses('text.secondary', 'text-sm font-medium flex items-center gap-4 mt-4')}>
+                            <span className="flex items-center gap-2">
+                              <BookOpen className="h-4 w-4" />
+                              {content?.level || getLevelDisplay(level)}
+                            </span>
+                            <span className="flex items-center gap-2">
+                              <Sparkles className="h-4 w-4" />
+                              {content?.contentType || (contentType === "concise" ? "Quick Read" : "Detailed")}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="prose dark:prose-invert max-w-none 
-                      prose-headings:font-serif prose-headings:text-gray-900 dark:prose-headings:text-white
-                      prose-p:text-gray-700 dark:prose-p:text-white prose-p:leading-relaxed
-                      prose-a:text-gray-900 dark:prose-a:text-white prose-a:no-underline hover:prose-a:underline
-                      prose-strong:text-gray-900 dark:prose-strong:text-white
-                      prose-code:text-gray-900 dark:prose-code:text-white prose-code:bg-gray-100 dark:prose-code:bg-gray-800
-                      prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-700
-                      prose-img:rounded-lg prose-img:shadow-md
-                      prose-blockquote:border-l-2 prose-blockquote:border-gray-300 dark:prose-blockquote:border-gray-600
-                      prose-blockquote:bg-gray-50 dark:prose-blockquote:bg-gray-800/50
-                      prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
-                      prose-ul:marker:text-gray-500 dark:prose-ul:marker:text-gray-400
-                      prose-ol:marker:text-gray-500 dark:prose-ol:marker:text-gray-400
-                      prose-li:text-gray-700 dark:prose-li:text-white
-                      prose-table:border prose-table:border-gray-200 dark:prose-table:border-gray-700
-                      prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-th:text-gray-900 dark:prose-th:text-white
-                      prose-td:border prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-td:text-gray-900 dark:prose-td:text-white">
-                      <PageRendererComponent htmlContent={currentPageContent?.refinedContent || ""} />
+                    <div className="flex-1 overflow-y-auto">
+                      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mr-32">
+                        <div className={getCombinedClasses('text.primary', 'prose dark:prose-invert max-w-none text-lg font-serif')}
+                          style={{ 
+                            fontSize: `${fontSize}px`,
+                            lineHeight: lineHeight 
+                          }}>
+                          <PageRendererComponent htmlContent={currentPageContent?.refinedContent || ""} />
+                        </div>
+                      </div>
                     </div>
 
                     {/* Navigation Controls */}
-                    <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                    <div className={getCombinedClasses('border.primary', 'mt-12 pt-8 border-t flex items-center justify-between')}>
                       <Button 
                         variant="ghost" 
                         onClick={handlePrevPage}
                         disabled={currentPage <= 1}
-                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
+                        className={getCombinedClasses('text.primary', 'px-3 py-2 rounded-md text-base transition-all flex items-center justify-between group font-medium disabled:opacity-50 disabled:cursor-not-allowed')}
                         aria-label="Previous page"
                       >
-                        <ChevronLeft className="h-5 w-5 mr-2" />
-                        Previous
+                        <span className="font-serif flex items-center gap-2">
+                          <ChevronLeft className="h-5 w-5" />
+                          Previous
+                        </span>
                       </Button>
                       <div className="flex items-center gap-4">
                         <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
@@ -624,7 +585,11 @@ export default function GeneratedWebsite() {
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${(currentPage / content.totalPages) * 100}%` }}
-                            className="h-full bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-300 dark:to-gray-400 transition-all"
+                            className={`h-full bg-gradient-to-r ${
+                              colorblind
+                                ? 'from-blue-400 to-blue-500 dark:from-blue-300 dark:to-blue-400'
+                                : 'from-emerald-400 to-emerald-500 dark:from-emerald-300 dark:to-emerald-400'
+                            } transition-all`}
                           />
                         </div>
                       </div>
@@ -632,11 +597,13 @@ export default function GeneratedWebsite() {
                         variant="ghost" 
                         onClick={handleNextPage}
                         disabled={currentPage >= content.totalPages}
-                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium"
+                        className={getCombinedClasses('text.primary', 'px-3 py-2 rounded-md text-base transition-all flex items-center justify-between group font-medium disabled:opacity-50 disabled:cursor-not-allowed')}
                         aria-label="Next page"
                       >
-                        Next
-                        <ChevronRight className="h-5 w-5 ml-2" />
+                        <span className="font-serif flex items-center gap-2">
+                          Next
+                          <ChevronRight className="h-5 w-5" />
+                        </span>
                       </Button>
                     </div>
                   </div>

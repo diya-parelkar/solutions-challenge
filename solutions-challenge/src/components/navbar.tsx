@@ -6,10 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { auth } from "@/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useThemeContext } from './ThemeProvider';
 
 function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const { getClasses, getCombinedClasses } = useThemeContext();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -28,18 +30,18 @@ function Navbar() {
   };
 
   return (
-    <header className="border-b">
+    <header className={getCombinedClasses('background.header', 'border-b')}>
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-        <span className="flex items-center gap-2">
-          <img src="/book.png" alt="EduGen Logo" className="w-8 h-8 rounded-lg shadow-lg bg-gradient-to-br from-white/80 to-emerald-100 p-1 dark:bg-gradient-to-br dark:from-white/60 dark:to-emerald-200 border border-white/70 dark:border-white/20" />
-        </span>
-          <Link to="/" className="font-bold text-xl">EduGen</Link>
+          <span className="flex items-center gap-2">
+            <img src="/book.png" alt="EduGen Logo" className="w-8 h-8 rounded-lg shadow-lg bg-gradient-to-br from-white/80 to-emerald-100 p-1 dark:bg-gradient-to-br dark:from-white/60 dark:to-emerald-200 border border-white/70 dark:border-white/20" />
+          </span>
+          <Link to="/" className={getCombinedClasses('text.primary', 'font-bold text-xl')}>EduGen</Link>
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</Link>
-          <Link to="/how-to-use" className="text-sm text-muted-foreground hover:text-foreground transition-colors">How To Use</Link>
+          <Link to="/about" className={getCombinedClasses('text.secondary', 'text-sm hover:text-foreground transition-colors')}>About</Link>
+          <Link to="/how-to-use" className={getCombinedClasses('text.secondary', 'text-sm hover:text-foreground transition-colors')}>How To Use</Link>
 
           {user ? (
             <DropdownMenu>
@@ -51,23 +53,28 @@ function Navbar() {
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 shadow-lg rounded-md border bg-white z-[9999]">
-              <DropdownMenuItem className="px-4 py-2 text-sm font-medium">{user.displayName || "Profile"}</DropdownMenuItem>
-                <DropdownMenuItem className="px-4 py-2 text-sm font-medium text-red-500 hover:bg-gray-100" onClick={handleLogout}>
+              <DropdownMenuContent align="end" className={getCombinedClasses('background.card', 'w-48 shadow-lg rounded-md border z-[9999]')}>
+                <DropdownMenuItem className={getCombinedClasses('text.primary', 'px-4 py-2 text-sm font-medium')}>{user.displayName || "Profile"}</DropdownMenuItem>
+                <DropdownMenuItem className={getCombinedClasses('text.primary', 'px-4 py-2 text-sm font-medium text-red-500 hover:bg-gray-100')} onClick={handleLogout}>
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <>
-              <Button onClick={() => setIsLoginOpen(true)}>Login</Button>
+              <Button 
+                onClick={() => setIsLoginOpen(true)}
+                className={getCombinedClasses('text.primary', 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800')}
+              >
+                Login
+              </Button>
               <LoginModal open={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
             </>
           )}
         </nav>
 
         <Button variant="ghost" size="icon" className="md:hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={getCombinedClasses('text.primary', '')}>
             <line x1="4" x2="20" y1="12" y2="12" />
             <line x1="4" x2="20" y1="6" y2="6" />
             <line x1="4" x2="20" y1="18" y2="18" />

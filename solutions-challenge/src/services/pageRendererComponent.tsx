@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from "react";
 import PageRenderer from "./pageRenderer";
-import { useTheme } from "next-themes";
+import { useThemeContext } from "../components/ThemeProvider";
 
-const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent }) => {
-  const { theme } = useTheme();
+export default function PageRendererComponent({ htmlContent }: { htmlContent: string }) {
+  const { mode } = useThemeContext();
   const renderedHtml = PageRenderer.renderPage(htmlContent);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (contentRef.current) {
-      contentRef.current.setAttribute('data-theme', theme || 'light');
+      contentRef.current.setAttribute('data-theme', mode || 'light');
       // Force a re-render of math and code highlighting
       if ((window as any).renderMathInElement) {
         (window as any).renderMathInElement(contentRef.current);
@@ -20,7 +20,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
         });
       }
     }
-  }, [theme]);
+  }, [mode]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -105,7 +105,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
         setTimeout(() => {
           if ((window as any).hljs && contentRef.current) {
             console.log("✅ Highlighting code...");
-            const stylesheet = theme === 'dark' 
+            const stylesheet = mode === 'dark' 
               ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css'
               : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css';
             
@@ -143,7 +143,7 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
 
       loadLibraries();
     }
-  }, [htmlContent, theme]);
+  }, [htmlContent, mode]);
 
   return (
     <div className="relative">
@@ -151,10 +151,8 @@ const PageRendererComponent: React.FC<{ htmlContent: string }> = ({ htmlContent 
         ref={contentRef} 
         dangerouslySetInnerHTML={{ __html: renderedHtml }} 
         className="relative"
-        data-theme={theme}
+        data-theme={mode}
       />
     </div>
   );
-};
-
-export default PageRendererComponent;
+}
