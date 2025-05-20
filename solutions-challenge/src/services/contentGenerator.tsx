@@ -27,49 +27,134 @@ class ContentGenerator {
   
         console.log("🔹 Generating content for:", pageTitle);
         const contentPrompt = `
-        You are a highly skilled website content creator and educational material developer. Your task is to generate the exact content for a specific page of an educational website, based on the provided page outline, level, content type, and visual aid requirements.
-    
-        **Page Outline:**
-    
-        * **Page Number:** ${pageNumber}
-        * **Page Title:** ${pageTitle}
-        * **Summary:** ${pageSummary}
-        * **Image:** ${imageRequired ? "Yes" : "No"}
-        * **Simulation:** ${simulationRequired ? "Yes" : "No"}
-        * **Animation:** ${animationRequired ? "Yes" : "No"}
-    
-        **Level:** ${this.getLevelDisplay(level)}
-        **Content Type:** ${contentType === "concise" ? "Concise - Quick Reads" : "Long form - Detailed"}
-    
-        **Instructions:**
-        1. Generate the content for **"${pageTitle}"**, expanding significantly on the provided ${pageSummary} and ensuring it thoroughly covers the topic.
-        2. Tailor the language, depth, and complexity of the content to the specified "${this.getLevelDisplay(level)}" level, but provide **more in-depth explanations and examples** than previously.
-        3. **For "Concise - Quick Reads" and levels above "Explain me like 5", prioritize brevity and key concepts. Avoid unnecessary detail.**
-        4. Adjust the length and detail of the content according to **"${contentType}"**, prioritizing **comprehensive coverage and detailed explanations**, even for concise content types.
-        5. ${imageRequired ? "Provide an image tag with the following format: [image: simple short search term : detailed prompt]. Do not use alt attribute. Images should have minimal text." : ""}
-        6. ${simulationRequired ? "Describe the simulation's functionality and purpose, providing detailed steps and interactions to be included." : ""}
-        7. ${animationRequired ? "Describe the animation's sequence and key elements, including specific visual cues and transitions." : ""}
-        8. Ensure the content is engaging, informative, and aligns with the educational objectives, **placing a strong emphasis on detailed explanations and examples.**
-        9. Generate the content in **HTML format**, using the following tags and class names:
-            * **Headings:** <h1>, <h2>, <h3> 
-            * **Paragraphs:** <p> 
-            * **Lists:** <ul>, <li> 
-            * **Emphasis:** <strong> for bold text 
-            * **Highlights:** <span class="highlight"> 
-            * **Boxed Content:** <div class="box"> 
-            * **Important Text:** <span class="important">
-            * **Tables:** <table>, <tr>, <th>, <td>
-            * **Code Blocks:** <pre><code class="language-LANGUAGE"> ... </code></pre> (Replace LANGUAGE with the appropriate language, e.g., python, javascript)
-        10. **For any mathematical expressions, use KaTeX formatting:**
-            Use '\\(' and '\\)' for inline math expressions (single backslash).
-            Use '\\[' and '\\]' for block math expressions (single backslash).
-        11. **If the ${pageTitle} is "References" (case-insensitive), create a comprehensive "References" section at the end of the HTML content, listing all sources used to generate the content. Format each reference in a clear and consistent style, including author, title, publication, and URL. Use <h1>, <h2>, <ul>, <li>, and <a> tags for formatting.**
-        12. **Return ONLY the HTML content. Do NOT include any additional text, explanations, or greetings. Do NOT include any markdown code blocks. Return the HTML as plain text.**
-        13. **If a comparison is needed, use a table to display the information. Ensure any image tags have an 'alt' attribute with [[image:prompt]] and 'AI generated' written in the description. Do not include a src attribute.**
-        14. **Generate code blocks using the <pre><code> tags, and specify the programming language using the class attribute (e.g., <code class="language-python">).**
-    
-        **Generated Page Content:**
-    `;
+        You are a master web designer and content creator. Your task is to create stunning, visually appealing educational content that follows modern design principles.
+
+        **Page Details:**
+        * Page Number: ${pageNumber}
+        * Title: ${pageTitle}
+        * Summary: ${pageSummary}
+        * Visual Requirements: ${imageRequired ? "Image" : ""} ${simulationRequired ? "Simulation" : ""} ${animationRequired ? "Animation" : ""}
+        * Level: ${this.getLevelDisplay(level)}
+        * Content Type: ${contentType === "concise" ? "Quick Read" : "Detailed Explanation"}
+
+        **Design System Requirements:**
+        1. Use these exact class names and structure:
+           - Main container: <div class="content-wrapper prose dark:prose-invert max-w-none">
+           - Headings: 
+             * <h2 class="content-subtitle text-2xl font-semibold mt-2 mb-4">Subtitle</h2>
+             * <h3 class="content-heading text-xl font-medium mt-6 mb-3">Heading</h3>
+           - Lists: 
+             * <ul class="content-list space-y-2 my-4">
+             * <li class="content-list-item">List item</li>
+           - Tables: 
+             * <div class="content-table-wrapper overflow-x-auto my-8 rounded-lg shadow-lg">
+               <table class="content-table w-full border-collapse">
+                 <thead class="bg-gray-100 dark:bg-gray-800">
+                   <tr>
+                     <th class="content-table-header p-4 text-left font-semibold border-b text-gray-900 dark:text-gray-100">Header</th>
+                   </tr>
+                 </thead>
+                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                   <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                     <td class="content-table-cell p-4 text-gray-900 dark:text-gray-300">Content</td>
+                   </tr>
+                   <tr class="bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/50">
+                     <td class="content-table-cell p-4">Content</td>
+                   </tr>
+                 </tbody>
+               </table>
+             </div>
+           - Blockquotes: 
+             * <blockquote class="content-quote border-l-4 border-primary-500 dark:border-primary-400 pl-4 my-4 italic">
+               Quote content
+             </blockquote>
+           - Important text: 
+             * <div class="content-highlight bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg my-4">
+               Important information
+             </div>
+           - Illustrations:
+             * <div class="content-illustration my-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+               <div class="flex items-center justify-between mb-4">
+                 <h4 class="text-lg font-semibold">Illustration Title</h4>
+                 <span class="text-sm text-gray-500">Figure 1</span>
+               </div>
+               [image: {search_term} : {detailed_prompt}]
+               <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">Caption text here</p>
+             </div>
+
+           - Timelines:
+             * <div class="content-timeline my-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+               <div class="flex items-center justify-between mb-4">
+                 <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Timeline Title</h4>
+               </div>
+               <Timeline
+                 title="Historical Events"
+                 events={[
+                   { date: "2020-01-01", label: "Event 1", description: "Description of event 1" },
+                   { date: "2020-06-15", label: "Event 2", description: "Description of event 2" },
+                   { date: "2021-03-30", label: "Event 3", description: "Description of event 3" }
+                 ]}
+               />
+             </div>
+
+        2. Visual Hierarchy and Spacing:
+           - Use generous whitespace between sections (my-8)
+           - Create visual hierarchy with font sizes and weights
+           - Add subtle borders and rounded corners
+           - Use consistent padding and margins
+           - Implement responsive design patterns
+
+        3. Rich Media Integration:
+           - Images: 
+             * Use high-quality, relevant images
+             * Add rounded corners (rounded-xl)
+             * Include subtle shadows (shadow-lg)
+             * Add descriptive captions
+             * Ensure proper aspect ratios
+           - Tables:
+             * Use alternating row colors
+             * Add hover effects
+             * Include proper spacing
+             * Make headers stand out
+             * Add responsive wrapper
+           - Code blocks:
+             * Include syntax highlighting
+             * Add line numbers
+             * Use proper padding
+             * Include language indicator
+           - Math:
+             * Use proper KaTeX delimiters
+             * Ensure responsive sizing
+             * Add proper spacing
+
+        4. Content Enhancement:
+           - Start with an engaging introduction
+           - Use clear section breaks
+           - Include relevant examples in styled boxes
+           - Add visual cues for important information
+           - End with a concise summary
+           - Use tables for:
+             * Comparisons
+             * Data presentation
+             * Feature lists
+             * Step-by-step guides
+           - Use illustrations for:
+             * Complex concepts
+             * Process flows
+             * Visual examples
+             * Data visualization
+
+        5. Accessibility and UX:
+           - Ensure proper heading hierarchy
+           - Add descriptive alt text for images
+           - Use semantic HTML elements
+           - Maintain good color contrast
+           - Keep consistent spacing
+           - Make tables responsive
+           - Ensure all content is readable
+
+        Return ONLY the HTML content with the specified class names and structure. Focus on creating a beautiful, engaging, and professional-looking page with well-designed tables and illustrations.
+        `;
     
         const result = await this.model.generateContent(contentPrompt);
         const responseText = await result.response.text();

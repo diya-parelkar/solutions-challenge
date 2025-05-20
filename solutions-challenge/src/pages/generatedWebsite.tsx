@@ -43,6 +43,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import CacheService from '../services/cache';
 
 // Type definitions
 interface PageContent {
@@ -108,13 +109,84 @@ export default function GeneratedWebsite() {
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [openTopics, setOpenTopics] = useState<Record<string, boolean>>({});
 
+  // Add loading state for navigation
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+
+  // Add state for tracking active topic
+  const [activeTopic, setActiveTopic] = useState<string | null>(null);
+
   // Initialize content generation
   useEffect(() => {
     if (!hasFetchedContent.current) {
       hasFetchedContent.current = true;
-      generateContent();
+      loadOrGenerateContent();
     }
   }, []);
+
+  // Load cached content or generate new content
+  const loadOrGenerateContent = async () => {
+    try {
+      const cache = new CacheService();
+      const contentKey = `content-${originalPrompt}-${level}-${contentType}`;
+      console.log(`🔍 Checking cache for content key: ${contentKey}`);
+      const cachedContent = cache.get(contentKey);
+
+      if (cachedContent) {
+        console.log('✅ Found cached content, loading pages...');
+        // Load cached content
+        const parsedContent = JSON.parse(cachedContent);
+        setContent(parsedContent);
+        setProgress(100);
+        setLoading(false);
+
+        // Load cached page contents
+        const allPages: PageContent[] = [];
+        let loadedPages = 0;
+        let missingPages = 0;
+
+        // Process each topic and subtopic to ensure correct page loading
+        for (const topic of parsedContent.topics) {
+          for (const subtopic of topic.subtopics) {
+            const pageKey = `page-${originalPrompt}-${level}-${contentType}-${subtopic.page}-${subtopic.title}`;
+            console.log(`🔍 Checking cache for page key: ${pageKey}`);
+            const cachedPage = cache.get(pageKey);
+            
+            if (cachedPage) {
+              console.log(`✅ Found cached page for: ${subtopic.title} (Page ${subtopic.page})`);
+              allPages.push(JSON.parse(cachedPage));
+              loadedPages++;
+            } else {
+              console.log(`⚠️ Missing cached page for: ${subtopic.title} (Page ${subtopic.page})`);
+              missingPages++;
+            }
+          }
+        }
+
+        console.log(`📊 Cache loading summary:
+          - Total pages: ${parsedContent.totalPages}
+          - Loaded pages: ${loadedPages}
+          - Missing pages: ${missingPages}
+        `);
+
+        if (missingPages > 0) {
+          console.log('⚠️ Some pages are missing from cache, regenerating content...');
+          generateContent();
+          return;
+        }
+
+        setPageContents(allPages);
+      } else {
+        console.log('⚠️ No cached content found, generating new content...');
+        // Generate new content
+        generateContent();
+      }
+    } catch (err) {
+      console.error('❌ Error loading content:', err);
+      setError(`Failed to load content: ${err instanceof Error ? err.message : String(err)}`);
+      setLoading(false);
+    }
+  };
 
   // Main content generation flow
   const generateContent = async () => {
@@ -156,27 +228,119 @@ export default function GeneratedWebsite() {
   
   const subtopicTitle = currentSubtopic?.title || `Page ${currentPage}`;
 
-  // Page navigation handlers
-  const handleNextPage = () => {
-    if (content && currentPage < content.totalPages) {
-      setCurrentPage(currentPage + 1);
-      window.scrollTo(0, 0);
+  // Enhanced navigation handlers with loading state
+  const handleNextPage = async () => {
+    if (isNavigating || !content || currentPage >= content.totalPages) return;
+    
+    setIsNavigating(true);
+    try {
+      const nextPage = currentPage + 1;
+      console.log(`🔄 Attempting to navigate to next page: ${nextPage}`);
+      const nextPageContent = pageContents.find(p => p.page === nextPage);
+      if (nextPageContent) {
+        console.log(`✅ Next page ${nextPage} content found, navigating...`);
+        setCurrentPage(nextPage);
+        window.scrollTo(0, 0);
+      } else {
+        console.log(`⚠️ Page ${nextPage} not yet loaded`);
+      }
+    } finally {
+      setIsNavigating(false);
     }
   };
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-      window.scrollTo(0, 0);
+  const handlePrevPage = async () => {
+    if (isNavigating || currentPage <= 1) return;
+    
+    setIsNavigating(true);
+    try {
+      const prevPage = currentPage - 1;
+      console.log(`🔄 Attempting to navigate to previous page: ${prevPage}`);
+      const prevPageContent = pageContents.find(p => p.page === prevPage);
+      if (prevPageContent) {
+        console.log(`✅ Previous page ${prevPage} content found, navigating...`);
+        setCurrentPage(prevPage);
+        window.scrollTo(0, 0);
+      } else {
+        console.log(`⚠️ Page ${prevPage} not yet loaded`);
+      }
+    } finally {
+      setIsNavigating(false);
     }
   };
 
-  const navigateToPage = (pageNumber: number) => {
-    if (pageNumber >= 1 && content && pageNumber <= content.totalPages) {
-      setCurrentPage(pageNumber);
-      window.scrollTo(0, 0);
+  const navigateToPage = async (pageNumber: number) => {
+    if (isNavigating || !content || pageNumber < 1 || pageNumber > content.totalPages) return;
+    
+    setIsNavigating(true);
+    try {
+      console.log(`🔄 Attempting to navigate to page: ${pageNumber}`);
+      const targetPageContent = pageContents.find(p => p.page === pageNumber);
+      if (targetPageContent) {
+        console.log(`✅ Page ${pageNumber} content found, navigating...`);
+        setCurrentPage(pageNumber);
+        window.scrollTo(0, 0);
+      } else {
+        console.log(`⚠️ Page ${pageNumber} not yet loaded`);
+      }
+    } finally {
+      setIsNavigating(false);
     }
   };
+
+  // Update loading state when page contents change
+  useEffect(() => {
+    if (pageContents.length > 0) {
+      console.log(`📄 Total pages loaded: ${pageContents.length}`);
+      setIsPageLoading(false);
+    }
+  }, [pageContents]);
+
+  // Update loading state when navigating
+  useEffect(() => {
+    console.log(`🔄 Navigation started to page: ${currentPage}`);
+    setIsPageLoading(true);
+    const timer = setTimeout(() => {
+      console.log(`✅ Navigation completed to page: ${currentPage}`);
+      setIsPageLoading(false);
+    }, 500); // Minimum loading time to prevent flicker
+
+    return () => clearTimeout(timer);
+  }, [currentPage]);
+
+  // Add loading indicator to navigation buttons
+  const renderNavigationButton = (direction: 'prev' | 'next', handler: () => void, disabled: boolean) => (
+    <Button 
+      variant="ghost" 
+      onClick={handler}
+      disabled={disabled || isNavigating || isPageLoading}
+      className={getCombinedClasses('text.primary', 'px-3 py-2 rounded-md text-base transition-all flex items-center justify-between group font-medium disabled:opacity-50 disabled:cursor-not-allowed')}
+      aria-label={`${direction === 'prev' ? 'Previous' : 'Next'} page`}
+    >
+      <span className="font-serif flex items-center gap-2">
+        {direction === 'prev' ? (
+          <>
+            <ChevronLeft className="h-5 w-5" />
+            Previous
+          </>
+        ) : (
+          <>
+            Next
+            <ChevronRight className="h-5 w-5" />
+          </>
+        )}
+      </span>
+    </Button>
+  );
+
+  // Update current page if current page content is not loaded
+  useEffect(() => {
+    if (!currentPageContent && pageContents.length > 0) {
+      // Find the first available page that's loaded
+      const firstLoadedPage = pageContents[0].page;
+      setCurrentPage(firstLoadedPage);
+    }
+  }, [pageContents, currentPageContent]);
 
   // Get loading status message
   const getLoadingStatusMessage = () => {
@@ -213,6 +377,24 @@ export default function GeneratedWebsite() {
       [topicTitle]: !prev[topicTitle]
     }));
   };
+
+  // Update active topic when current page changes
+  useEffect(() => {
+    if (content) {
+      const currentTopic = content.topics.find(topic => 
+        topic.subtopics.some(subtopic => subtopic.page === currentPage)
+      );
+      if (currentTopic) {
+        console.log(`📚 Current topic updated: ${currentTopic.title}`);
+        setActiveTopic(currentTopic.title);
+        // Ensure the topic is open in the navigation
+        setOpenTopics(prev => ({
+          ...prev,
+          [currentTopic.title]: true
+        }));
+      }
+    }
+  }, [currentPage, content]);
 
   return (
     <div 
@@ -423,86 +605,144 @@ export default function GeneratedWebsite() {
                           </div>
                           <nav className="p-6" aria-label="Course Contents">
                             <ul className="space-y-8">
-                              {content.topics.map((topic) => (
-                                <li key={topic.title}>
-                                  <div className="flex items-center justify-between mb-3">
-                                    <h3 className="font-serif text-lg text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                                      <Lightbulb className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                                      {topic.title}
-                                    </h3>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                                      onClick={() => toggleTopicOpen(topic.title)}
-                                      aria-label={`${openTopics[topic.title] ? 'Collapse' : 'Expand'} ${topic.title}`}
-                                    >
-                                      {openTopics[topic.title] ? (
-                                        <ChevronDown className="h-4 w-4" />
-                                      ) : (
-                                        <ChevronRightIcon className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                  <AnimatePresence>
-                                    {openTopics[topic.title] !== false && (
-                                      <motion.ul
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: "auto" }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="space-y-2 pl-4 border-l-2 border-emerald-500/20 dark:border-emerald-500/30"
+                              {content.topics.map((topic) => {
+                                console.log(`📚 Rendering topic: ${topic.title} with ${topic.subtopics.length} subtopics`);
+                                return (
+                                  <li key={topic.title}>
+                                    <div className="flex items-center justify-between mb-3">
+                                      <h3 className={`font-serif text-lg flex items-center gap-2 ${
+                                        activeTopic === topic.title 
+                                          ? 'text-gray-900 dark:text-gray-100' 
+                                          : 'text-gray-700 dark:text-gray-300'
+                                      }`}>
+                                        <Lightbulb className={`h-4 w-4 ${
+                                          activeTopic === topic.title 
+                                            ? 'text-emerald-500' 
+                                            : 'text-gray-500 dark:text-gray-400'
+                                        }`} />
+                                        {topic.title}
+                                      </h3>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-6 w-6 ${
+                                          activeTopic === topic.title 
+                                            ? 'text-emerald-500' 
+                                            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                                        }`}
+                                        onClick={() => {
+                                          console.log(`📑 Toggling topic: ${topic.title}`);
+                                          toggleTopicOpen(topic.title);
+                                        }}
+                                        aria-label={`${openTopics[topic.title] ? 'Collapse' : 'Expand'} ${topic.title}`}
                                       >
-                                        {topic.subtopics.map((subtopic) => (
-                                          <li key={subtopic.page}>
-                                            <div className="relative">
-                                              <button
-                                                onClick={() => navigateToPage(subtopic.page)}
-                                                className={`w-full text-left px-3 py-2 rounded-md text-base transition-all flex items-center justify-between group
-                                                  ${currentPage === subtopic.page
-                                                    ? "text-gray-900 dark:text-gray-100 font-medium bg-emerald-50 dark:bg-emerald-900/20"
-                                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
-                                                  }`}
-                                                aria-current={currentPage === subtopic.page ? "page" : undefined}
-                                              >
-                                                <span className="font-serif flex items-center gap-2">
-                                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
-                                                  {subtopic.title}
-                                                </span>
-                                                <TooltipProvider>
-                                                  <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity
-                                                          ${bookmarks.includes(subtopic.page) ? "text-emerald-500" : "text-gray-400"}`}
-                                                        onClick={(e) => {
-                                                          e.stopPropagation();
-                                                          toggleBookmark(subtopic.page);
-                                                        }}
-                                                        aria-label={bookmarks.includes(subtopic.page) ? "Remove bookmark" : "Add bookmark"}
-                                                      >
-                                                        {bookmarks.includes(subtopic.page) ? (
-                                                          <BookmarkCheck className="h-4 w-4" />
-                                                        ) : (
-                                                          <Bookmark className="h-4 w-4" />
-                                                        )}
-                                                      </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                      {bookmarks.includes(subtopic.page) ? "Remove bookmark" : "Add bookmark"}
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                </TooltipProvider>
-                                              </button>
-                                            </div>
-                                          </li>
-                                        ))}
-                                      </motion.ul>
-                                    )}
-                                  </AnimatePresence>
-                                </li>
-                              ))}
+                                        {openTopics[topic.title] ? (
+                                          <ChevronDown className="h-4 w-4" />
+                                        ) : (
+                                          <ChevronRightIcon className="h-4 w-4" />
+                                        )}
+                                      </Button>
+                                    </div>
+                                    <AnimatePresence>
+                                      {openTopics[topic.title] !== false && (
+                                        <motion.ul
+                                          initial={{ opacity: 0, height: 0 }}
+                                          animate={{ opacity: 1, height: "auto" }}
+                                          exit={{ opacity: 0, height: 0 }}
+                                          className="space-y-2 pl-4 border-l-2 border-emerald-500/20 dark:border-emerald-500/30"
+                                        >
+                                          {topic.subtopics.map((subtopic) => {
+                                            // Ensure each subtopic has its own unique page number
+                                            const pageNumber = subtopic.page;
+                                            console.log(`📄 Subtopic "${subtopic.title}" mapped to page ${pageNumber}`);
+                                            
+                                            const isPageLoaded = pageContents.some(p => p.page === pageNumber);
+                                            const isActive = currentPage === pageNumber;
+                                            
+                                            console.log(`🔍 Subtopic "${subtopic.title}" status:
+                                              - Page number: ${pageNumber}
+                                              - Is loaded: ${isPageLoaded}
+                                              - Is active: ${isActive}
+                                              - Available pages: ${pageContents.map(p => p.page).join(', ')}
+                                            `);
+
+                                            return (
+                                              <li key={`${topic.title}-${pageNumber}-${subtopic.title}`}>
+                                                <div className="relative">
+                                                  <button
+                                                    onClick={() => {
+                                                      console.log(`🔍 Clicked subtopic: ${subtopic.title} (Page ${pageNumber})`);
+                                                      console.log(`📄 Page loaded: ${isPageLoaded}`);
+                                                      console.log(`🎯 Currently active: ${isActive}`);
+                                                      if (isPageLoaded) {
+                                                        navigateToPage(pageNumber);
+                                                      } else {
+                                                        console.log(`⚠️ Cannot navigate - page ${pageNumber} not loaded`);
+                                                      }
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 rounded-md text-base transition-all flex items-center justify-between group
+                                                      ${isActive
+                                                        ? "text-gray-900 dark:text-gray-100 font-medium bg-emerald-50 dark:bg-emerald-900/20"
+                                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
+                                                      }
+                                                      ${!isPageLoaded ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                    aria-current={isActive ? "page" : undefined}
+                                                    disabled={!isPageLoaded}
+                                                  >
+                                                    <span className="font-serif flex items-center gap-2">
+                                                      <span className={`w-1.5 h-1.5 rounded-full ${
+                                                        isActive 
+                                                          ? 'bg-emerald-500' 
+                                                          : 'bg-emerald-500/50'
+                                                      }`}></span>
+                                                      {subtopic.title}
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                      <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                          <div
+                                                            className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer
+                                                              ${bookmarks.includes(pageNumber) ? "text-emerald-500" : "text-gray-400"}`}
+                                                            onClick={(e) => {
+                                                              e.stopPropagation();
+                                                              console.log(`🔖 Toggling bookmark for page ${pageNumber}`);
+                                                              toggleBookmark(pageNumber);
+                                                            }}
+                                                            role="button"
+                                                            tabIndex={0}
+                                                            onKeyDown={(e) => {
+                                                              if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                console.log(`🔖 Toggling bookmark for page ${pageNumber} (keyboard)`);
+                                                                toggleBookmark(pageNumber);
+                                                              }
+                                                            }}
+                                                            aria-label={bookmarks.includes(pageNumber) ? "Remove bookmark" : "Add bookmark"}
+                                                          >
+                                                            {bookmarks.includes(pageNumber) ? (
+                                                              <BookmarkCheck className="h-4 w-4" />
+                                                            ) : (
+                                                              <Bookmark className="h-4 w-4" />
+                                                            )}
+                                                          </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                          {bookmarks.includes(pageNumber) ? "Remove bookmark" : "Add bookmark"}
+                                                        </TooltipContent>
+                                                      </Tooltip>
+                                                    </div>
+                                                  </button>
+                                                </div>
+                                              </li>
+                                            );
+                                          })}
+                                        </motion.ul>
+                                      )}
+                                    </AnimatePresence>
+                                  </li>
+                                );
+                              })}
                             </ul>
                           </nav>
                         </div>
@@ -565,18 +805,7 @@ export default function GeneratedWebsite() {
 
                     {/* Navigation Controls */}
                     <div className={getCombinedClasses('border.primary', 'mt-12 pt-8 border-t flex items-center justify-between')}>
-                      <Button 
-                        variant="ghost" 
-                        onClick={handlePrevPage}
-                        disabled={currentPage <= 1}
-                        className={getCombinedClasses('text.primary', 'px-3 py-2 rounded-md text-base transition-all flex items-center justify-between group font-medium disabled:opacity-50 disabled:cursor-not-allowed')}
-                        aria-label="Previous page"
-                      >
-                        <span className="font-serif flex items-center gap-2">
-                          <ChevronLeft className="h-5 w-5" />
-                          Previous
-                        </span>
-                      </Button>
+                      {renderNavigationButton('prev', handlePrevPage, currentPage <= 1 || !pageContents.some(p => p.page === currentPage - 1))}
                       <div className="flex items-center gap-4">
                         <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                           {currentPage} of {content.totalPages}
@@ -593,18 +822,7 @@ export default function GeneratedWebsite() {
                           />
                         </div>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        onClick={handleNextPage}
-                        disabled={currentPage >= content.totalPages}
-                        className={getCombinedClasses('text.primary', 'px-3 py-2 rounded-md text-base transition-all flex items-center justify-between group font-medium disabled:opacity-50 disabled:cursor-not-allowed')}
-                        aria-label="Next page"
-                      >
-                        <span className="font-serif flex items-center gap-2">
-                          Next
-                          <ChevronRight className="h-5 w-5" />
-                        </span>
-                      </Button>
+                      {renderNavigationButton('next', handleNextPage, currentPage >= content.totalPages || !pageContents.some(p => p.page === currentPage + 1))}
                     </div>
                   </div>
                 </motion.div>

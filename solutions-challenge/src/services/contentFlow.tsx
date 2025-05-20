@@ -1,10 +1,11 @@
-import PromptRefinement from "./promptRefinement";
-import OutlineGenerator from "./outlineGenerator";
-import ContentGenerator from "./contentGenerator";
-import ContentRefinement from "./contentRefinement";
-import PageRenderer from "./pageRenderer";
-import CacheService from "./cache";
-import ImageGenerationService from "./imageGeneration";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import CacheService from './cache';
+import OutlineGenerator from './outlineGenerator';
+import ContentGenerator from './contentGenerator';
+import ImageGenerationService from './imageGeneration';
+import ContentRefinement from './contentRefinement';
+import PageRenderer from './pageRenderer';
+import PromptRefinement from './promptRefinement';
 
 interface PageContent {
   page: number;
@@ -104,7 +105,7 @@ export default class ContentFlowService {
 
   // Step 2: Generate the content outline
   private async generateOutline(refined: string): Promise<void> {
-    const cacheKey = `outline-${this.originalPrompt}`;
+    const cacheKey = `content-${this.originalPrompt}-${this.level}-${this.contentType}`;
     
     try {
       const cachedOutline = this.cache.get(cacheKey);
@@ -154,6 +155,29 @@ export default class ContentFlowService {
       return;
     }
 
+    // Validate page numbers before processing
+    const pageNumbers = new Set<number>();
+    let hasDuplicatePages = false;
+    let currentPage = 1;
+
+    // First pass: validate and fix page numbers
+    for (const topic of content.topics) {
+      for (const subtopic of topic.subtopics) {
+        if (pageNumbers.has(subtopic.page)) {
+          console.error(`❌ Duplicate page number found: ${subtopic.page} for subtopic "${subtopic.title}"`);
+          hasDuplicatePages = true;
+        }
+        pageNumbers.add(subtopic.page);
+        subtopic.page = currentPage++; // Force sequential page numbers
+      }
+    }
+
+    if (hasDuplicatePages) {
+      console.warn('⚠️ Fixed duplicate page numbers by reassigning sequentially');
+      // Update totalPages to match the actual number of subtopics
+      content.totalPages = currentPage - 1;
+    }
+
     const totalSubtopics = content.topics.reduce((count, topic) => count + topic.subtopics.length, 0);
     let completedPages = 0;
 
@@ -161,13 +185,12 @@ export default class ContentFlowService {
     const allSubtopics = content.topics.flatMap(topic => topic.subtopics);
 
     try {
-      // Create generation promises for all pages
-      const pagePromises = allSubtopics.map(async (subtopic) => {
-        const cacheKey = `page-${this.originalPrompt}-${subtopic.page}`;
+      // Process pages in order
+      for (const subtopic of allSubtopics) {
+        const cacheKey = `page-${this.originalPrompt}-${this.level}-${this.contentType}-${subtopic.page}-${subtopic.title}`;
         const cachedPage = this.cache.get(cacheKey);
 
         if (cachedPage) {
-          // Return cached page if available
           const pageData = JSON.parse(cachedPage);
           this.addPageToState(pageData);
           
@@ -175,67 +198,62 @@ export default class ContentFlowService {
           const progressValue = 40 + (completedPages / totalSubtopics) * 50;
           this.setProgress(Math.min(90, progressValue));
           
-          return pageData;
-        } else {
-          try {
-            // Generate the page content
-            const rawContent = await ContentGenerator.generatePageContent(
-              this.refinedPrompt!,
-              this.level,
-              this.contentType,
-              subtopic.title,
-              subtopic.summary,
-              subtopic.page,
-              subtopic.requires
-            );
-
-            // Process the content
-            const refinedContent = await ContentRefinement.refineContent(rawContent);
-            const contentWithImages = await this.imageService.processContent(refinedContent);
-            const styledContent = PageRenderer.applyStyles(contentWithImages);
-
-            // Create page data object
-            const pageData = {
-              page: subtopic.page,
-              rawContent,
-              refinedContent: styledContent
-            };
-
-            // Cache the result
-            this.cache.set(cacheKey, JSON.stringify(pageData));
-            this.addPageToState(pageData);
-            
-            completedPages++;
-            const progressValue = 40 + (completedPages / totalSubtopics) * 50;
-            this.setProgress(Math.min(90, progressValue));
-            
-            return pageData;
-          } catch (err) {
-            // Handle errors gracefully
-            console.error(`Error generating page ${subtopic.page}:`, err);
-            
-            const errorPageData = {
-              page: subtopic.page,
-              rawContent: `Error generating content for "${subtopic.title}"`,
-              refinedContent: `<p>Error generating content for "${subtopic.title}". Please try again later.</p>`
-            };
-            
-            this.addPageToState(errorPageData);
-            
-            completedPages++;
-            const progressValue = 40 + (completedPages / totalSubtopics) * 50;
-            this.setProgress(Math.min(90, progressValue));
-            
-            return errorPageData;
-          }
+          continue;
         }
-      });
 
-      // Process all pages concurrently
-      const allPages = await Promise.all(pagePromises);
+        try {
+          console.log(`🔄 Generating content for page ${subtopic.page}: ${subtopic.title}`);
+          
+          const rawContent = await ContentGenerator.generatePageContent(
+            this.refinedPrompt!,
+            this.level,
+            this.contentType,
+            subtopic.title,
+            subtopic.summary,
+            subtopic.page,
+            subtopic.requires
+          );
+
+          const contentWithImages = await this.imageService.processContent(rawContent);
+          const refinedContent = await ContentRefinement.refineContent(contentWithImages);
+          const styledContent = PageRenderer.renderPage(refinedContent);
+
+          const pageData = {
+            page: subtopic.page,
+            rawContent,
+            refinedContent: styledContent
+          };
+
+          this.cache.set(cacheKey, JSON.stringify(pageData));
+          this.addPageToState(pageData);
+          
+          completedPages++;
+          const progressValue = 40 + (completedPages / totalSubtopics) * 50;
+          this.setProgress(Math.min(90, progressValue));
+          
+          console.log(`✅ Completed page ${subtopic.page}: ${subtopic.title}`);
+        } catch (err) {
+          console.error(`❌ Error generating page ${subtopic.page}:`, err);
+          
+          const errorPageData = {
+            page: subtopic.page,
+            rawContent: `Error generating content for "${subtopic.title}"`,
+            refinedContent: `<div class="error-message">
+              <h2>Error Generating Content</h2>
+              <p>We encountered an error while generating content for "${subtopic.title}".</p>
+              <p>Error details: ${err instanceof Error ? err.message : String(err)}</p>
+              <p>Please try again later or contact support if the issue persists.</p>
+            </div>`
+          };
+          
+          this.addPageToState(errorPageData);
+          
+          completedPages++;
+          const progressValue = 40 + (completedPages / totalSubtopics) * 50;
+          this.setProgress(Math.min(90, progressValue));
+        }
+      }
       
-      // Set final state
-      this.setPageContents(allPages);
       this.setProgress(100);
     } catch (err) {
       this.setError(`Failed to generate content: ${err instanceof Error ? err.message : String(err)}`);

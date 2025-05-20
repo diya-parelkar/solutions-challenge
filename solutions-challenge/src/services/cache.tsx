@@ -1,4 +1,7 @@
 export default class CacheService {
+    private readonly MAX_ITEM_SIZE = 1024 * 1024; // 1MB per item
+    private readonly CLEANUP_THRESHOLD = 0.9; // 90% of storage used
+
     // Get an item from localStorage
     public get(key: string): string | null {
       try {
@@ -9,12 +12,36 @@ export default class CacheService {
       }
     }
   
-    // Set an item in localStorage
+    // Set an item in localStorage with size checks and cleanup
     public set(key: string, value: string): boolean {
       try {
+        // Check if the item is too large
+        if (this.getItemSize(key, value) > this.MAX_ITEM_SIZE) {
+          console.warn(`Item ${key} is too large to cache (${this.getItemSize(key, value)} bytes)`);
+          return false;
+        }
+
+        // Check storage usage and cleanup if needed
+        const storageInfo = this.getStorageInfo();
+        if (storageInfo.percentage > this.CLEANUP_THRESHOLD) {
+          this.cleanup();
+        }
+
+        // Try to set the item
         localStorage.setItem(key, value);
         return true;
       } catch (error) {
+        if (error instanceof Error && error.name === 'QuotaExceededError') {
+          console.warn('Storage quota exceeded, attempting cleanup...');
+          this.cleanup();
+          try {
+            localStorage.setItem(key, value);
+            return true;
+          } catch (retryError) {
+            console.error(`Failed to store item after cleanup: ${key}`, retryError);
+            return false;
+          }
+        }
         console.error(`Error setting item with key ${key} in cache:`, error);
         return false;
       }
@@ -73,7 +100,7 @@ export default class CacheService {
         const key = localStorage.key(i);
         if (key) {
           const value = localStorage.getItem(key) || '';
-          used += key.length + value.length;
+          used += this.getItemSize(key, value);
         }
       }
       
@@ -88,5 +115,50 @@ export default class CacheService {
         total: totalMB,
         percentage: (usedMB / totalMB) * 100
       };
+    }
+
+    // Calculate size of an item in bytes
+    private getItemSize(key: string, value: string): number {
+      return (key.length + value.length) * 2; // UTF-16 uses 2 bytes per character
+    }
+
+    // Cleanup old items when storage is nearly full
+    private cleanup(): void {
+      try {
+        const storageInfo = this.getStorageInfo();
+        if (storageInfo.percentage <= this.CLEANUP_THRESHOLD) {
+          return;
+        }
+
+        // Get all keys and their sizes
+        const items: { key: string; size: number; timestamp: number }[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key) {
+            const value = localStorage.getItem(key) || '';
+            const size = this.getItemSize(key, value);
+            // Try to get timestamp from key (assuming format: prefix-timestamp)
+            const timestamp = parseInt(key.split('-').pop() || '0');
+            items.push({ key, size, timestamp });
+          }
+        }
+
+        // Sort by timestamp (oldest first)
+        items.sort((a, b) => a.timestamp - b.timestamp);
+
+        // Remove items until we're below threshold
+        let currentUsage = storageInfo.used * 1024 * 1024; // Convert MB to bytes
+        const targetUsage = this.CLEANUP_THRESHOLD * 5 * 1024 * 1024; // 90% of 5MB
+
+        for (const item of items) {
+          if (currentUsage <= targetUsage) break;
+          localStorage.removeItem(item.key);
+          currentUsage -= item.size;
+        }
+
+        console.log(`Cache cleanup completed. New usage: ${(currentUsage / (1024 * 1024)).toFixed(2)}MB`);
+      } catch (error) {
+        console.error('Error during cache cleanup:', error);
+      }
     }
   }
