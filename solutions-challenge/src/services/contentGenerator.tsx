@@ -18,6 +18,13 @@ class ContentGenerator {
         const simulationRequired = requires.includes("Simulation");
         const animationRequired = requires.includes("Animation");
 
+        console.log("🔍 Content Requirements:", {
+          imageRequired,
+          simulationRequired,
+          animationRequired,
+          requires
+        });
+
         const cacheKey = `${pageTitle}-${level}-${contentType}`;
   
         if (this.cache.has(cacheKey)) {
@@ -36,6 +43,15 @@ class ContentGenerator {
         * Visual Requirements: ${imageRequired ? "Image" : ""} ${simulationRequired ? "Simulation" : ""} ${animationRequired ? "Animation" : ""}
         * Level: ${this.getLevelDisplay(level)}
         * Content Type: ${contentType === "concise" ? "Quick Read" : "Detailed Explanation"}
+
+        ${animationRequired ? `
+        **IMPORTANT: This content requires animations.**
+        - Include at least one animation placeholder using the format: [animation: {search_term} : {detailed_prompt}]
+        - search_term should be a short keyword for finding relevant animations
+        - detailed_prompt should describe what the animation should show
+        - Place animations in appropriate sections of the content
+        - Include a descriptive caption for each animation
+        ` : ''}
 
         **Design System Requirements:**
         1. Use these exact class names and structure:
@@ -80,6 +96,18 @@ class ContentGenerator {
                </div>
                [image: {search_term} : {detailed_prompt}]
                <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">Caption text here</p>
+             </div>
+
+           - Animations:
+             * <div class="content-animation my-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+               <div class="flex items-center justify-between mb-4">
+                 <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                   <img src="https://cdn.jsdelivr.net/gh/icons8/flat-color-icons@master/svg/start.svg" class="flat-color-icon" alt="Animation icon" />
+                   Animation Title
+                 </h4>
+               </div>
+               [animation: {search_term} : {detailed_prompt}]
+               <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">Animation caption here</p>
              </div>
 
            - Timelines:

@@ -11,4 +11,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ['react-quiz-component'],
+    exclude: []
+  },
+  build: {
+    commonjsOptions: {
+      include: [/react-quiz-component/, /node_modules/]
+    }
+  }
 })

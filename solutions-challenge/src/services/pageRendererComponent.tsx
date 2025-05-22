@@ -1,11 +1,59 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PageRenderer from "./pageRenderer";
 import { useThemeContext } from "../components/ThemeProvider";
+import { animationService } from './animationService';
+import QuizComponent from '../components/QuizComponent';
 
-export default function PageRendererComponent({ htmlContent }: { htmlContent: string }) {
+interface PageRendererComponentProps {
+  htmlContent: string;
+  quiz?: {
+    title: string;
+    description: string;
+    questions: Array<{
+      question: string;
+      options: string[];
+      correctAnswer: number;
+      explanation: string;
+    }>;
+  };
+}
+
+const PageRendererComponent: React.FC<PageRendererComponentProps> = ({ htmlContent, quiz }) => {
   const { mode } = useThemeContext();
+  const [processedContent, setProcessedContent] = useState(htmlContent);
   const renderedHtml = PageRenderer.renderPage(htmlContent);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Transform quiz data to match expected structure
+  const transformedQuiz = quiz ? {
+    quizTitle: quiz.title,
+    quizSynopsis: quiz.description,
+    questions: quiz.questions.map(q => ({
+      question: q.question,
+      answers: q.options,
+      correctAnswer: q.correctAnswer.toString(),
+      explanation: q.explanation
+    }))
+  } : undefined;
+
+  useEffect(() => {
+    console.log("Quiz data received:", quiz);
+  }, [quiz]);
+
+  useEffect(() => {
+    const processContent = async () => {
+      try {
+        // Process any animation placeholders in the content
+        const contentWithAnimations = await animationService.processAnimationPlaceholders(htmlContent);
+        setProcessedContent(contentWithAnimations);
+      } catch (error) {
+        console.error('Error processing animations:', error);
+        setProcessedContent(htmlContent); // Fallback to original content if there's an error
+      }
+    };
+
+    processContent();
+  }, [htmlContent]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -149,10 +197,17 @@ export default function PageRendererComponent({ htmlContent }: { htmlContent: st
     <div className="relative">
       <div 
         ref={contentRef} 
-        dangerouslySetInnerHTML={{ __html: renderedHtml }} 
+        dangerouslySetInnerHTML={{ __html: processedContent }} 
         className="relative"
         data-theme={mode}
       />
+      {transformedQuiz && transformedQuiz.questions && transformedQuiz.questions.length > 0 && (
+        <div className="mt-8">
+          <QuizComponent questions={transformedQuiz.questions} />
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default PageRendererComponent;

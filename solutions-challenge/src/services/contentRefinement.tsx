@@ -30,7 +30,7 @@ class ContentRefinement {
         1. Maintain these exact class names and structure:
            - Main container: <div class="content-wrapper prose dark:prose-invert max-w-none">
            - Headings: 
-             * <h2 class="content-subtitle text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-200">
+             * <h2 class="content-subtitle text-2xl font-semibold mt-4 mb-4 text-gray-800 dark:text-gray-200">
                <img src="${this.iconBaseUrl}idea.svg" class="flat-color-icon" alt="Idea icon" />
                Subtitle
              </h2>
@@ -71,7 +71,7 @@ class ContentRefinement {
              </div>
            - Code blocks:
              * <div class="content-code bg-gray-100 dark:bg-gray-800 p-4 rounded-lg my-4 font-mono text-sm text-gray-800 dark:text-gray-200">
-               <img src="${this.iconBaseUrl}code.svg" class="flat-color-icon" alt="Code icon" />
+               <img src="${this.iconBaseUrl}services.svg" class="flat-color-icon" alt="Code icon" />
                <pre><code>Code content</code></pre>
              </div>
            - Links:

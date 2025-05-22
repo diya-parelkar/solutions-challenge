@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import PageRendererComponent from './../services/pageRendererComponent';
 import ContentFlowService from '../services/contentFlow';
 import Chatbot from "../components/chatbot";
+import QuizDrawer from "../components/QuizDrawer";
 import { useThemeContext } from '../components/ThemeProvider';
 import { 
   ChevronLeft, 
@@ -34,7 +35,8 @@ import {
   Printer,
   ChevronDown,
   ChevronRight as ChevronRightIcon,
-  Eye
+  Eye,
+  HelpCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -44,12 +46,24 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import CacheService from '../services/cache';
+import TextModifier from '../components/TextModifier';
+import { useTextSelection } from '../hooks/useTextSelection';
 
 // Type definitions
 interface PageContent {
   page: number;
   rawContent: string;
   refinedContent?: string;
+  quiz?: {
+    title: string;
+    description: string;
+    questions: Array<{
+      question: string;
+      options: string[];
+      correctAnswer: number;
+      explanation: string;
+    }>;
+  };
 }
 
 interface Subtopic {
@@ -85,6 +99,7 @@ export default function GeneratedWebsite() {
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, colorblind, toggleMode, toggleColorblind, getClasses, getCombinedClasses } = useThemeContext();
+  const { selection, modifyText, clearSelection } = useTextSelection();
 
   // Extract query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -115,6 +130,9 @@ export default function GeneratedWebsite() {
 
   // Add state for tracking active topic
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
+
+  // Add state for quiz drawer
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   // Initialize content generation
   useEffect(() => {
@@ -406,7 +424,7 @@ export default function GeneratedWebsite() {
     >
       {/* Header */}
       <header className={`sticky top-0 z-50 backdrop-blur-lg ${getClasses('background.header')} border-b ${getClasses('border.primary')}`}>
-        <div className="container mx-auto px-4 py-4">
+        <div className="container px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
@@ -432,6 +450,14 @@ export default function GeneratedWebsite() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className={getCombinedClasses('text.secondary', 'hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2')}
+                onClick={() => setIsQuizOpen(!isQuizOpen)}
+              >
+                <HelpCircle className="h-4 w-4" />
+                TRY QUIZ
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -798,7 +824,10 @@ export default function GeneratedWebsite() {
                             fontSize: `${fontSize}px`,
                             lineHeight: lineHeight 
                           }}>
-                          <PageRendererComponent htmlContent={currentPageContent?.refinedContent || ""} />
+                          <PageRendererComponent 
+                            htmlContent={currentPageContent?.refinedContent || ""} 
+                            quiz={currentPageContent?.quiz}
+                          />
                         </div>
                       </div>
                     </div>
@@ -836,12 +865,31 @@ export default function GeneratedWebsite() {
             </div>
           </div>
         )}
+        
+        {selection && (
+          <TextModifier
+            selectedText={selection.text}
+            position={selection.position}
+            onClose={clearSelection}
+            onModify={modifyText}
+            level={level}
+            contentType={contentType}
+          />
+        )}
       </main>
 
       {/* Chatbot */}
       <div className="fixed bottom-8 right-8 z-50">
         <Chatbot promptTitle={originalPrompt} level={level} />
       </div>
+
+      {/* Quiz Drawer */}
+      <QuizDrawer
+        isOpen={isQuizOpen}
+        onClose={() => setIsQuizOpen(false)}
+        prompt={originalPrompt}
+        level={level}
+      />
     </div>
   );
 }
