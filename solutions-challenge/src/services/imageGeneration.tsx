@@ -26,7 +26,7 @@ class ImageSelectionService {
 
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.0-flash-preview-image-generation",
       generationConfig: {
         temperature: 0.4,
         topK: 32,
@@ -41,26 +41,29 @@ class ImageSelectionService {
   async generateImage(prompt: string): Promise<{ url: string; isGenerated: boolean } | null> {
     if (this.imageCache.has(prompt)) {
       const cached = this.imageCache.get(prompt);
-      return cached ? { url: cached, isGenerated: cached.startsWith('data:image') } : null;
+      return cached ? { url: cached, isGenerated: cached.startsWith("data:image") } : null;
     }
 
     try {
       const result = await this.model.generateContent({
-        contents: [{
-          role: "user",
-          parts: [{
-            text: `Generate a detailed, educational image for: ${prompt}. The image should be clear, informative, and suitable for educational content.`
-          }]
-        }],
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `Generate a detailed, educational image for: ${prompt}. The image should be clear, informative, and suitable for educational content.`,
+              },
+            ],
+          },
+        ],
         generationConfig: {
-          responseModalities: ["Text", "Image"]
-        }
+          responseMimeType: ["image"], 
+        },
       });
-      
+
       const response = await result.response;
-      console.log('Gemini response:', response); // Debug log
-      
-      // Extract image data from response
+      console.log("Gemini API Response:", response);
+
       const imageData = response.candidates?.[0]?.content?.parts?.find(
         (part: ContentPart) => part.inlineData?.data
       )?.inlineData?.data;
@@ -70,17 +73,12 @@ class ImageSelectionService {
         this.imageCache.set(prompt, imageUrl);
         return { url: imageUrl, isGenerated: true };
       }
-      
-      // Fallback to Unsplash if no image data
-      const fallbackImage = `https://source.unsplash.com/featured/?${encodeURIComponent(prompt)}`;
-      this.imageCache.set(prompt, fallbackImage);
-      return { url: fallbackImage, isGenerated: false };
+
+      console.error("No image data found in Gemini API response.");
+      return this.fallbackToUnsplash(prompt);
     } catch (error) {
       console.error("Error generating image:", error);
-      // Fallback to direct Unsplash search on error
-      const fallbackImage = `https://source.unsplash.com/featured/?${encodeURIComponent(prompt)}`;
-      this.imageCache.set(prompt, fallbackImage);
-      return { url: fallbackImage, isGenerated: false };
+      return this.fallbackToUnsplash(prompt);
     }
   }
 
@@ -88,22 +86,22 @@ class ImageSelectionService {
     const imagePlaceholderRegex = /\[image:(.*?):(.*?)\]/g;
     let modifiedContent = content;
     const matches = [...content.matchAll(imagePlaceholderRegex)];
-  
+
     for (const match of matches) {
       const simplePrompt = match[1].trim();
       const detailedPrompt = match[2].trim();
-      
+
       console.log(`Processing image for: ${simplePrompt}`);
-      
+
       let imageResult = await this.searchImage(simplePrompt);
       let isGenerated = false;
-  
+
       if (!imageResult) {
         console.log(`No suitable image found for: ${simplePrompt}. Generating image...`);
         imageResult = await this.generateImage(detailedPrompt);
         isGenerated = imageResult?.isGenerated || false;
       }
-      
+
       modifiedContent = modifiedContent.replace(
         match[0],
         imageResult
@@ -111,13 +109,19 @@ class ImageSelectionService {
               <img src="${imageResult.url}" alt="${simplePrompt}" 
                 style="width: 300px; height: 200px; object-fit: cover; border-radius: 8px; cursor: pointer;"
                 title="Prompt: ${simplePrompt}"
-                onerror="this.onerror=null; this.src='https://source.unsplash.com/featured/?${encodeURIComponent(simplePrompt)}';"
+                onerror="this.onerror=null; this.src='https://source.unsplash.com/featured/?${encodeURIComponent(
+                  simplePrompt
+                )}';"
               />
-              ${isGenerated ? `
+              ${
+                isGenerated
+                  ? `
                 <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 0, 0, 0.7); color: white; padding: 4px 8px; font-size: 12px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
                   AI Generated
                 </div>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>`
           : `<p style="color: red;">Failed to load image: ${simplePrompt}</p>`
       );
@@ -128,8 +132,12 @@ class ImageSelectionService {
   async searchImage(query: string): Promise<{ url: string; isGenerated: boolean } | null> {
     try {
       const searchResponse = await fetch(
-        `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&searchType=image&key=${import.meta.env.VITE_GOOGLE_SEARCH_API_KEY}&cx=${import.meta.env.VITE_GOOGLE_CSE_ID}`
-      );      
+        `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(
+          query
+        )}&searchType=image&key=${import.meta.env.VITE_GOOGLE_SEARCH_API_KEY}&cx=${
+          import.meta.env.VITE_GOOGLE_CSE_ID
+        }`
+      );
       const data = await searchResponse.json();
 
       if (data.items) {
@@ -140,6 +148,13 @@ class ImageSelectionService {
       console.error("Error searching for image:", error);
     }
     return null;
+  }
+
+  private fallbackToUnsplash(prompt: string): { url: string; isGenerated: boolean } {
+    console.warn(`Falling back to Unsplash for prompt: ${prompt}`);
+    const fallbackImage = `https://source.unsplash.com/featured/?${encodeURIComponent(prompt)}`;
+    this.imageCache.set(prompt, fallbackImage);
+    return { url: fallbackImage, isGenerated: false };
   }
 }
 

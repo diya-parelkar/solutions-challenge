@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useThemeContext } from './ThemeProvider';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase";
 import BookLogo from "../assets/book.png";
 import SignUp from "../pages/signup";
 
@@ -12,6 +14,30 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(open);
   const { getClasses, getCombinedClasses, mode } = useThemeContext();
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      console.log("User signed in with Google:", result.user);
+      onClose();
+    } catch (error: any) {
+      console.error("Error signing in with Google:", error.message);
+      alert(error.message);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("User signed in:", userCredential.user);
+      onClose();
+    } catch (error: any) {
+      console.error("Error signing in:", error.message);
+      alert(error.message);
+    }
+  };
 
   const handleOpenSignUp = () => {
     onClose();
@@ -30,11 +56,6 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
 
   // Determine if login modal should be open
   const loginModalOpen = (open && !isSignUpOpen) || isLoginOpen;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle login logic here
-  };
 
   if (!loginModalOpen && !isSignUpOpen) return null;
 
@@ -63,7 +84,7 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
               <div className="space-y-4">
                 <Button
                   className={getCombinedClasses('background.card', 'w-full h-12 text-lg border border-emerald-500/20 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl shadow-md flex items-center justify-center gap-2')}
-                  onClick={() => {/* handleGoogleSignIn */}}
+                  onClick={handleGoogleSignIn}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48">
                     <path fill="#4285F4" d="M46.06 24.56c0-1.6-.14-3.14-.38-4.64H24v9.4h12.74c-.6 3.12-2.42 5.8-5.06 7.58v6.28h8.18c4.8-4.42 7.6-10.94 7.6-18.62Z" />
