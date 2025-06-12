@@ -25,20 +25,21 @@ const PageRendererComponent: React.FC<PageRendererComponentProps> = ({ htmlConte
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Transform quiz data to match expected structure
-  const transformedQuiz = quiz ? {
+  const transformedQuiz = quiz && quiz.questions ? {
     quizTitle: quiz.title,
     quizSynopsis: quiz.description,
     questions: quiz.questions.map(q => ({
       question: q.question,
-      answers: q.options,
-      correctAnswer: q.correctAnswer.toString(),
+      answers: q.options || [],
+      correctAnswer: (q.correctAnswer + 1).toString(), // Convert to 1-based index string
       explanation: q.explanation
     }))
-  } : undefined;
+  } : null;
 
   useEffect(() => {
     console.log("Quiz data received:", quiz);
-  }, [quiz]);
+    console.log("Transformed quiz:", transformedQuiz);
+  }, [quiz, transformedQuiz]);
 
   useEffect(() => {
     const processContent = async () => {
@@ -201,11 +202,6 @@ const PageRendererComponent: React.FC<PageRendererComponentProps> = ({ htmlConte
         className="relative"
         data-theme={mode}
       />
-      {transformedQuiz && transformedQuiz.questions && transformedQuiz.questions.length > 0 && (
-        <div className="mt-8">
-          <QuizComponent questions={transformedQuiz.questions} />
-        </div>
-      )}
     </div>
   );
 };

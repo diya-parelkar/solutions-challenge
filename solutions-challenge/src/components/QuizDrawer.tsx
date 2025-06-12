@@ -3,6 +3,10 @@ import { X } from 'lucide-react';
 import QuizComponent from './QuizComponent';
 import { quizGenerator } from '../services/quizGenerator';
 import { useThemeContext } from './ThemeProvider';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Initialize Gemini API
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_BEAUTIFY_KEY);
 
 interface QuizQuestion {
   question: string;
@@ -28,6 +32,8 @@ const QuizDrawer: React.FC<QuizDrawerProps> = ({ isOpen, onClose, prompt, level 
   const [quiz, setQuiz] = React.useState<Quiz | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [currentFactIndex, setCurrentFactIndex] = React.useState(0);
+  const [loadingFacts, setLoadingFacts] = React.useState<string[]>([]);
   const { getClasses, getCombinedClasses } = useThemeContext();
 
   React.useEffect(() => {
@@ -36,10 +42,55 @@ const QuizDrawer: React.FC<QuizDrawerProps> = ({ isOpen, onClose, prompt, level 
     }
   }, [isOpen]);
 
+  React.useEffect(() => {
+    if (loading) {
+      const interval = setInterval(() => {
+        setCurrentFactIndex((prev) => (prev + 1) % loadingFacts.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [loading, loadingFacts]);
+
+  const generateFacts = async () => {
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      
+      const promptText = `Generate 2 interesting and educational facts about ${prompt} at ${level} level. Each fact should be concise and engaging. Return only the facts, one per line.`;
+      const result = await model.generateContent(promptText);
+      
+      const response = await result.response;
+      const text = response.text();
+      console.log('Gemini response:', text); // Debug log
+      
+      // Split by newlines and filter out empty lines
+      const facts = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0 && !line.startsWith('*') && !line.startsWith('-'));
+      
+      if (facts.length === 0) {
+        throw new Error('No facts generated');
+      }
+      
+      setLoadingFacts(facts);
+    } catch (err) {
+      console.error('Error generating facts:', err);
+      setLoadingFacts([
+        `Learning about ${prompt} at ${level} level can be fascinating!`,
+        `Did you know that ${prompt} has many interesting aspects to explore?`
+      ]);
+    }
+  };
+
   const generateQuiz = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Generate facts first
+      await generateFacts();
+      
+      // Then generate the quiz
       const quizData = await quizGenerator.generateQuiz(prompt, "", level);
       setQuiz(quizData);
     } catch (err) {
@@ -72,7 +123,13 @@ const QuizDrawer: React.FC<QuizDrawerProps> = ({ isOpen, onClose, prompt, level 
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
             {loading ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center justify-center h-full space-y-12">
+                <div className="w-full max-w-md mt-8">
+                  <div className={`p-6 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 ${getClasses('text.primary')}`}>
+                    <p className="text-sm font-medium mb-2">Did You Know?</p>
+                    <p className="text-sm">{loadingFacts[currentFactIndex]}</p>
+                  </div>
+                </div>
                 <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${getClasses('accent.blue')}`}></div>
               </div>
             ) : error ? (
